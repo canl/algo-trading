@@ -1,9 +1,10 @@
+import argparse
 import logging
 from datetime import timedelta, datetime
 
-import pandas as pd
-from src.common import read_price_data, transform
-from src.order_utils.order_api import placing_order
+from src.common import read_price_df
+from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order
+
 
 # Rules:
 #   1. Find the high and low between 00:00 to 08:00 UTC
@@ -20,14 +21,17 @@ from src.order_utils.order_api import placing_order
 #   4. Inactive pending orders will expire next trading day at 08:00 AM (GMT).
 
 
-logging.basicConfig(level=logging.DEBUG)
+def cancel_pending_orders():
+    pending_orders = get_pending_orders()
+    if pending_orders:
+        for o in pending_orders:
+            cancel_order(o.get('id'))
 
-if __name__ == "__main__":
-    to_date = datetime.today() + timedelta(days=1)
-    from_date = to_date - timedelta(days=3)
-    logging.info(f'Reading date between {from_date} and {to_date}')
-    raw_response = read_price_data('GBP_USD', 'H1', from_dt=from_date.strftime("%Y-%m-%d"))
-    df = pd.DataFrame(transform(raw_response)).set_index('time')
+
+def run(dry_run=True):
+    from_date = datetime.today() - timedelta(days=3)
+    logging.info(f'Reading date from {from_date} to now')
+    df = read_price_df('GBP_USD', 'H1', start=from_date)
     df['last_8_high'] = df['high'].rolling(8).max()
     df['last_8_low'] = df['low'].rolling(8).min()
     df['diff_pips'] = (df['last_8_high'] - df['last_8_low']) * 10000
@@ -42,8 +46,14 @@ if __name__ == "__main__":
     logging.info(f'Placing buy order. Price: {last_high}, TP: {last_high + last_diff}, SL: {last_low}')
     logging.info(f'Placing sell order. Price: {last_low}, TP: {last_low - last_diff}, SL: {last_high}')
 
-    dry_run = True
-
     if not dry_run:
+        cancel_pending_orders()
         placing_order(instrument='GBP_USD', side='buy', units=100000, price=last_high, tp=last_high + last_diff, sl=last_low)
         placing_order(instrument='GBP_USD', side='sell', units=100000, price=last_low, tp=last_low - last_diff, sl=last_high)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="London Breakout Strategy")
+    parser.add_argument("--dryRun", type=bool, help="Flag to indicate dry run")
+    args = parser.parse_args()
+    run(args.dryRun)

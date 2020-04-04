@@ -2,11 +2,10 @@ import logging
 import math
 from datetime import timedelta, datetime
 
-import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from src.common import read_price_data, transform
+from src.common import read_price_df
 from src.order_utils.order import OrderStatus, Order
 
 # Rules:
@@ -65,6 +64,7 @@ def backtest(price_data, adj=0.0):
             sell_sl = v['last_8_high']
             orders.append(Order(k.date(), 'buy', v['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
             orders.append(Order(k.date(), 'sell', v['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+            continue
 
         for order in [el for el in orders if el.status in (OrderStatus.PENDING, OrderStatus.FILLED)]:
             # Pending orders
@@ -85,7 +85,7 @@ def backtest(price_data, adj=0.0):
                         order.status = OrderStatus.CLOSED
                         order.pnl = (order.tp - order.price) * 10000
 
-                if order.side == 'sell':
+                elif order.side == 'sell':
                     if v['high'] > order.sl:
                         order.status = OrderStatus.CLOSED
                         order.pnl = -1 * (order.sl - order.price) * 10000
@@ -99,20 +99,13 @@ def backtest(price_data, adj=0.0):
 
 
 if __name__ == "__main__":
-    days = 1000
+    no_of_days = 7300
     raw_response = []
     last_date = datetime.today() - timedelta(days=1)
+    from_date = last_date - timedelta(days=no_of_days)
 
-    for i in range(int(np.ceil(days / 100))):
-        to_date = last_date - timedelta(days=i * 100)
-        from_date = to_date - timedelta(days=100)
-        logging.info(f'Reading date between {from_date} and {to_date}')
-
-        raw_response.extend(read_price_data('GBP_USD', 'H1', from_dt=from_date.strftime("%Y-%m-%d"),
-                                            to_dt=to_date.strftime("%Y-%m-%d")))
-
-    logging.info(raw_response)
-    df = pd.DataFrame(transform(raw_response)).set_index('time')
+    logging.info(f'Reading date between {from_date} and {last_date}')
+    df = read_price_df(instrument='GBP_USD', granularity='H1', start=from_date, end=last_date)
     print(type(df.index.dtype))
     df['last_8_high'] = df['high'].rolling(8).max()
     df['last_8_low'] = df['low'].rolling(8).min()
@@ -123,21 +116,20 @@ if __name__ == "__main__":
     # print(df.info())
     strats = []
     price_data = df.to_dict('index')
-    print(price_data)
-    tp_adjustments = (0, 5, 10, 20)
+    tp_adjustments = (0, 5,)
     for adj in tp_adjustments:
-        orders = backtest(price_data, adj / 10000)
-        strats.append(orders)
+        test_trades = backtest(price_data, adj / 10000)
+        strats.append(test_trades)
 
     print(
-        '{} orders placed.\nbuy orders: {}\nsell orders: {}\nfilled order: {}\nexpired order: {}\nwin Orders: {}\nloss orders: {}\nwin/loss ratio: {}'.format(
-            len(orders), len([el for el in orders if el.side == 'buy']),
-            len([el for el in orders if el.side == 'sell']),
-            len([el for el in orders if el.status == OrderStatus.CLOSED]),
-            len([el for el in orders if el.status == OrderStatus.EXPIRED]),
-            len([el for el in orders if el.pnl > 0]), len([el for el in orders if el.pnl < 0]),
-            len([el for el in orders if el.pnl > 0]) / (
-                    len([el for el in orders if el.pnl > 0]) + len([el for el in orders if el.pnl < 0]))
+        '{} orders placed.\nbuy orders: {}\nsell orders: {}\nfilled order: {}\nexpired order: {}\nwin Orders: {}\nloss orders: {}\nwin/loss ratio: {}%\noverall pnl: {}'.format(
+            len(strats[0]), len([el for el in strats[0] if el.side == 'buy']),
+            len([el for el in strats[0] if el.side == 'sell']),
+            len([el for el in strats[0] if el.status == OrderStatus.CLOSED]),
+            len([el for el in strats[0] if el.status == OrderStatus.EXPIRED]),
+            len([el for el in strats[0] if el.pnl > 0]), len([el for el in strats[0] if el.pnl < 0]),
+            round((len([el for el in strats[0] if el.pnl > 0]) / (len([el for el in strats[0] if el.pnl > 0]) + len([el for el in strats[0] if el.pnl < 0]))) * 100, 2),
+            round(sum(el.pnl for el in strats[0]), 4)
         ))
 
     plot_performance(strats, tp_adjustments)
