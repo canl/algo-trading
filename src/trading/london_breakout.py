@@ -28,7 +28,7 @@ def cancel_pending_orders():
             cancel_order(o.get('id'))
 
 
-def run(dry_run=True):
+def run(live_run=False):
     from_date = datetime.today() - timedelta(days=3)
     logging.info(f'Reading date from {from_date} to now')
     df = read_price_df('GBP_USD', 'H1', start=from_date)
@@ -46,14 +46,16 @@ def run(dry_run=True):
     logging.info(f'Placing buy order. Price: {last_high}, TP: {last_high + last_diff}, SL: {last_low}')
     logging.info(f'Placing sell order. Price: {last_low}, TP: {last_low - last_diff}, SL: {last_high}')
 
-    if not dry_run:
+    if live_run:
         cancel_pending_orders()
         placing_order(instrument='GBP_USD', side='buy', units=100000, price=last_high, tp=last_high + last_diff, sl=last_low)
         placing_order(instrument='GBP_USD', side='sell', units=100000, price=last_low, tp=last_low - last_diff, sl=last_high)
+    else:
+        logging.info('Dry run only for testing.')
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="London Breakout Strategy")
-    parser.add_argument("--dryRun", type=bool, help="Flag to indicate dry run")
+    parser.add_argument("--liveRun", help="Flag to indicate dry or live run", action='store_true', default=False)
     args = parser.parse_args()
-    run(args.dryRun)
+    run(args.liveRun)
