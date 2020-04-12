@@ -158,9 +158,10 @@ def build_params(granularity: str, start: datetime, end: datetime = None, max_co
             multiplier = nums
 
     params = []
-    for idx in range(int(np.ceil(candlesticks / max_count))):
+    no_of_requests = int(np.ceil(candlesticks / max_count))
+    for idx in range(no_of_requests):
         e = end - timedelta(seconds=idx * multiplier * max_count)
-        s = e - timedelta(seconds=(candlesticks if candlesticks < max_count else max_count) * multiplier)
+        s = start if idx == no_of_requests - 1 else e - timedelta(seconds=(candlesticks if candlesticks < max_count else max_count) * multiplier)
         params.append(
             {
                 'from': s.strftime(OANDA_DATETIME_FORMAT),

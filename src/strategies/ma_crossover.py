@@ -13,8 +13,8 @@ from src.order_utils.order import Order, OrderStatus
 #   3. Sell: when short window cross over long window from top
 
 
-short_window = 20
-long_window = 50
+short_window = 100
+long_window = 350
 
 last_date = datetime.today() - timedelta(days=1)
 start_date = last_date - timedelta(days=3000)
@@ -61,8 +61,8 @@ def back_test():
 
         if next_move:
             if orders:
-                orders[-1] = Order(orders[-1].order_date, orders[-1].side, orders[-1].price, status=OrderStatus.CLOSED,
-                                   pnl=(p.get('close') - orders[-1].price) * (1 if orders[-1].side == 'buy' else -1) * 10000)
+                orders[-1] = Order(orders[-1].order_date, orders[-1].side, orders[-1].entry, status=OrderStatus.CLOSED,
+                                   pnl=(p.get('close') - orders[-1].entry) * (1 if orders[-1].side == 'buy' else -1) * 10000)
             orders.append(Order(pd.to_datetime(p.get('time')), next_move, p.get('open'), status=OrderStatus.FILLED))
             next_move = None
 

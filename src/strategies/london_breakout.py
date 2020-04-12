@@ -5,7 +5,9 @@ from datetime import timedelta, datetime
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from src.backtester import BackTester
 from src.common import read_price_df
+from src.indicators import wma
 from src.order_utils.order import OrderStatus, Order
 
 # Rules:
@@ -40,7 +42,7 @@ def plot_performance(strats: list, tp_adjustments: tuple):
     plt.show()
 
 
-def backtest(price_data, adj=0.0):
+def create_orders(price_data, adj=0.0, verify_ema=False):
     """
     params: price_data, list of dictionaries
     params: adj: float, to adjust the TP
@@ -48,88 +50,63 @@ def backtest(price_data, adj=0.0):
     """
     orders = []
 
-    for k, v in price_data.items():
-        print('{}: [{}]'.format(k.hour, v))
+    for time, ohlc in price_data.items():
         # x - (y - x) = 2x - y
-        if math.isnan(v['last_8_high']):
+        if math.isnan(ohlc['last_8_high']):
             continue
 
-        if k.hour == 8:
+        if time.hour == 8:
             for order in [el for el in orders if el.status == OrderStatus.PENDING]:
-                order.status = OrderStatus.EXPIRED
+                order.status = OrderStatus.CANCELLED
 
-            buy_tp = round(v['last_8_high'] * 2 - v['last_8_low'] + adj, 5)
-            buy_sl = v['last_8_low']
-            sell_tp = round(v['last_8_low'] * 2 - v['last_8_high'] - adj, 5)
-            sell_sl = v['last_8_high']
-            orders.append(Order(k.date(), 'buy', v['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
-            orders.append(Order(k.date(), 'sell', v['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
-            continue
+            buy_tp = round(ohlc['last_8_high'] * 2 - ohlc['last_8_low'] + adj, 5)
+            buy_sl = ohlc['last_8_low']
+            sell_tp = round(ohlc['last_8_low'] * 2 - ohlc['last_8_high'] - adj, 5)
+            sell_sl = ohlc['last_8_high']
 
-        for order in [el for el in orders if el.status in (OrderStatus.PENDING, OrderStatus.FILLED)]:
-            # Pending orders
+            if verify_ema:
+                if ohlc['low'] >= ohlc['ema']:
+                    orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                elif ohlc['high'] <= ohlc['ema']:
+                    orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+            else:
+                orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+
+        for order in orders:
+            # Try to fill pending orders
             if order.status == OrderStatus.PENDING:
-                if order.side == 'buy':
-                    if v['high'] > order.price:  # buy order filled
-                        order.status = OrderStatus.FILLED
-                elif order.side == 'sell':
-                    if v['low'] < order.price:  # sell order filled
-                        order.status = OrderStatus.FILLED
-            # Filled orders
-            if order.status == OrderStatus.FILLED:
-                if order.side == 'buy':
-                    if v['low'] < order.sl:
-                        order.status = OrderStatus.CLOSED
-                        order.pnl = -1 * (order.price - order.sl) * 10000
-                    elif v['high'] > order.tp:
-                        order.status = OrderStatus.CLOSED
-                        order.pnl = (order.tp - order.price) * 10000
+                if order.is_long:
+                    if ohlc['high'] > order.entry:  # buy order filled
+                        order.fill(time)
+                elif order.is_short:
+                    if ohlc['low'] < order.entry:  # sell order filled
+                        order.fill(time)
 
-                elif order.side == 'sell':
-                    if v['high'] > order.sl:
-                        order.status = OrderStatus.CLOSED
-                        order.pnl = -1 * (order.sl - order.price) * 10000
-                    elif v['low'] < order.tp:
-                        order.status = OrderStatus.CLOSED
-                        order.pnl = (order.price - order.tp) * 10000
-
-    logging.info(orders)
-    logging.info('Total PNL is: {}'.format(sum(el.pnl for el in orders)))
+    logging.info(f'{len(orders)} orders created.')
     return orders
 
 
 if __name__ == "__main__":
-    no_of_days = 7300
-    raw_response = []
-    last_date = datetime.today() - timedelta(days=1)
-    from_date = last_date - timedelta(days=no_of_days)
+    from_date = datetime(2015, 1, 1)
+    last_date = datetime(2020, 3, 31)
 
     logging.info(f'Reading date between {from_date} and {last_date}')
-    df = read_price_df(instrument='GBP_USD', granularity='H1', start=from_date, end=last_date)
-    print(type(df.index.dtype))
+    df = read_price_df(instrument='EUR_USD', granularity='H1', start=from_date, end=last_date)
+
     df['last_8_high'] = df['high'].rolling(8).max()
     df['last_8_low'] = df['low'].rolling(8).min()
     df['diff_pips'] = (df['last_8_high'] - df['last_8_low']) * 10000
+    df['ema'] = wma(df['close'], 50)
 
-    logging.info(df[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips']])
-    # df_08 = df.at_time('8:00')
-    # print(df.info())
-    strats = []
-    price_data = df.to_dict('index')
-    tp_adjustments = (0, 5,)
-    for adj in tp_adjustments:
-        test_trades = backtest(price_data, adj / 10000)
-        strats.append(test_trades)
+    logging.info(df[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips', 'ema']])
+    back_tester = BackTester()
+    dfs = []
+    for adj in (0, 5, 10,):
+        orders = create_orders(df.to_dict('index'), adj=adj / 10000)
+        dfs.append(back_tester.run(df, orders, print_stats=True, suffix=f'_{adj}'))
 
-    print(
-        '{} orders placed.\nbuy orders: {}\nsell orders: {}\nfilled order: {}\nexpired order: {}\nwin Orders: {}\nloss orders: {}\nwin/loss ratio: {}%\noverall pnl: {}'.format(
-            len(strats[0]), len([el for el in strats[0] if el.side == 'buy']),
-            len([el for el in strats[0] if el.side == 'sell']),
-            len([el for el in strats[0] if el.status == OrderStatus.CLOSED]),
-            len([el for el in strats[0] if el.status == OrderStatus.EXPIRED]),
-            len([el for el in strats[0] if el.pnl > 0]), len([el for el in strats[0] if el.pnl < 0]),
-            round((len([el for el in strats[0] if el.pnl > 0]) / (len([el for el in strats[0] if el.pnl > 0]) + len([el for el in strats[0] if el.pnl < 0]))) * 100, 2),
-            round(sum(el.pnl for el in strats[0]), 4)
-        ))
+    orders = create_orders(df.to_dict('index'), adj=5 / 10000, verify_ema=True)
+    dfs.append(back_tester.run(df, orders, print_stats=True, suffix='_ema_50'))
 
-    plot_performance(strats, tp_adjustments)
+    back_tester.plot_chart(dfs)

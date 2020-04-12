@@ -62,7 +62,7 @@ class TestCommon(TestCase):
                 'granularity': 'H4'
             },
             {
-                'from': '2020-03-18T09:00:00',
+                'from': '2020-03-18T21:00:00',
                 'to': '2020-03-19T05:00:00',
                 'granularity': 'H4'
             }
@@ -118,7 +118,7 @@ class TestCommon(TestCase):
                 'granularity': 'M30'
             },
             {
-                'from': '2020-03-18T19:00:00',
+                'from': '2020-03-18T21:00:00',
                 'to': '2020-03-19T00:00:00',
                 'granularity': 'M30'
             }
