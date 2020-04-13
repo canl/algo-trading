@@ -3,6 +3,7 @@ import math
 from datetime import timedelta, datetime
 
 import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
@@ -42,15 +43,17 @@ def plot_performance(strats: list, tp_adjustments: tuple):
     plt.show()
 
 
-def create_orders(price_data, adj=0.0, verify_ema=False):
+def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = False, momentum_signal: bool = False):
     """
-    params: price_data, list of dictionaries
-    params: adj: float, to adjust the TP
-    return: list of orders
+    create and fill limit orders
+    :param price_df: ohlc pd.DataFrame
+    :param adj: float, parameters to adjust the SL or TP
+    :param verify_ema: bool flag, confirm with EMA indicator
+    :param momentum_signal: bool flag, confirm with momentum indicator
+    :return:
     """
     orders = []
-
-    for time, ohlc in price_data.items():
+    for time, ohlc in price_df.to_dict('index').items():
         # x - (y - x) = 2x - y
         if math.isnan(ohlc['last_8_high']):
             continue
@@ -64,7 +67,13 @@ def create_orders(price_data, adj=0.0, verify_ema=False):
             sell_tp = round(ohlc['last_8_low'] * 2 - ohlc['last_8_high'] - adj, 5)
             sell_sl = ohlc['last_8_high']
 
-            if verify_ema:
+            if momentum_signal:
+                if ohlc['momentum_signal'] == 1:
+                    orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                elif ohlc['momentum_signal'] == -1:
+                    orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+
+            elif verify_ema:
                 if ohlc['low'] >= ohlc['ema']:
                     orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
                 elif ohlc['high'] <= ohlc['ema']:
@@ -88,25 +97,32 @@ def create_orders(price_data, adj=0.0, verify_ema=False):
 
 
 if __name__ == "__main__":
-    from_date = datetime(2015, 1, 1)
+    from_date = datetime(2010, 1, 1)
     last_date = datetime(2020, 3, 31)
 
     logging.info(f'Reading date between {from_date} and {last_date}')
-    df = read_price_df(instrument='EUR_USD', granularity='H1', start=from_date, end=last_date)
+    ohlc = read_price_df(instrument='GBP_USD', granularity='H1', start=from_date, end=last_date)
 
-    df['last_8_high'] = df['high'].rolling(8).max()
-    df['last_8_low'] = df['low'].rolling(8).min()
-    df['diff_pips'] = (df['last_8_high'] - df['last_8_low']) * 10000
-    df['ema'] = wma(df['close'], 50)
+    ohlc['last_8_high'] = ohlc['high'].rolling(8).max()
+    ohlc['last_8_low'] = ohlc['low'].rolling(8).min()
+    ohlc['diff_pips'] = (ohlc['last_8_high'] - ohlc['last_8_low']) * 10000
+    ohlc['returns'] = np.log(ohlc['close'] / ohlc['close'].shift(1))
 
-    logging.info(df[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips', 'ema']])
+    logging.info(ohlc[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips', 'returns']])
     back_tester = BackTester()
     dfs = []
     for adj in (0, 5, 10,):
-        orders = create_orders(df.to_dict('index'), adj=adj / 10000)
-        dfs.append(back_tester.run(df, orders, print_stats=True, suffix=f'_{adj}'))
+        orders = create_orders(ohlc, adj=adj / 10000)
+        dfs.append(back_tester.run(ohlc, orders, print_stats=True, suffix=f'_{adj}'))
 
-    orders = create_orders(df.to_dict('index'), adj=5 / 10000, verify_ema=True)
-    dfs.append(back_tester.run(df, orders, print_stats=True, suffix='_ema_50'))
+    for period in (14, 28, 50):
+        ohlc['ema'] = wma(ohlc['close'], period)
+        orders = create_orders(ohlc, adj=5 / 10000, verify_ema=True)
+        dfs.append(back_tester.run(ohlc, orders, print_stats=True, suffix=f'_ema_{period}'))
+
+    for period in (30, 60, 120):
+        ohlc['momentum_signal'] = np.sign(ohlc['returns'].rolling(period).mean())
+        orders = create_orders(ohlc, adj=5 / 10000, momentum_signal=True)
+        dfs.append(back_tester.run(ohlc, orders, print_stats=True, suffix=f'_momentum_{period}'))
 
     back_tester.plot_chart(dfs)

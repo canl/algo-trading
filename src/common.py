@@ -62,7 +62,7 @@ def read_price_data(instrument, granularity, start=None, end=None, max_count=400
     final_response = []
     for p in params:
         try:
-            logger.info(f'Reading price data for {instrument}\n{params}')
+            logger.info(f'Reading price data for {instrument}\n{p}')
             r = v20instruments.InstrumentsCandles(instrument=instrument, params=p)
             resp = api.request(r)
             final_response.extend(resp['candles'])

@@ -80,7 +80,14 @@ def create_orders(ohlc: pd.DataFrame, sl_multiplier: float, tp_multiplier: float
 
 
 if __name__ == '__main__':
-    df = sample_data(instrument='AUD_USD', start=datetime(2010, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
-    orders = create_orders(df, 1.5, 3)
+    dfs = []
+    instruments = [('XAU_USD', 100), ('GBP_USD', 100000), ('EUR_USD', 100000), ('GBP_AUD', 100000),
+                   ('USD_JPY', 1000), ('AUD_USD', 100000), ('USD_SGD', 100000)]
     back_tester = BackTester()
-    back_tester.run(df, orders)
+    for instrument, lot_size in instruments:
+        df = sample_data(instrument=instrument, start=datetime(2005, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
+        orders = create_orders(df, 1.5, 3)
+        back_tester.lot_size = lot_size
+        p = back_tester.run(df, orders, suffix=f'_{instrument}')
+        dfs.append(p)
+    back_tester.plot_chart(dfs)

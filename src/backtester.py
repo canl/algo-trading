@@ -11,7 +11,7 @@ class BackTester:
     Purpose: Backtesting and output performance report
     """
 
-    def __init__(self, initial_cash: float = 10000, commission: float = .0, lot_size: float = 0.1):
+    def __init__(self, initial_cash: float = 10000, commission: float = .0, lot_size: float = 100000):
         self.initial_cash = initial_cash
         self.commission = commission
         self.lot_size = lot_size
@@ -43,7 +43,7 @@ class BackTester:
                         elif ohlc['low'] < o.tp:
                             o.close_with_win(time)
 
-            position = sum(o.pnl for o in orders) * self.lot_size * 100000 + self.initial_cash  # 1 standard lot = 100,000
+            position = sum(o.pnl for o in orders) * self.lot_size + self.initial_cash  # 1 standard lot = 100,000
             performance.append({
                 'time': time,
                 f'pnl{suffix}': position
@@ -57,13 +57,12 @@ class BackTester:
 
         return pd.DataFrame(performance).set_index('time')
 
-    @staticmethod
-    def print_stats(orders):
+    def print_stats(self, orders):
         no_of_wins = len([o for o in orders if o.outcome == 'win'])
         no_of_losses = len([o for o in orders if o.outcome == 'loss'])
         avg_win = sum(o.pnl for o in orders if o.outcome == 'win') / no_of_wins if no_of_wins else 0
         avg_loss = sum(o.pnl for o in orders if o.outcome == 'loss') / no_of_losses if no_of_losses else 0
-        total_pips = sum(o.pnl for o in orders) * 10000
+        total_pips = sum(o.pnl for o in orders) * self.lot_size
         win_percent = round(no_of_wins / (no_of_wins + no_of_losses), 4)
         win_loss_ratio = abs(round(avg_win / avg_loss, 2)) if avg_loss else 0
         expectancy = round(win_percent * win_loss_ratio - (1 - win_percent), 4)
@@ -77,8 +76,8 @@ class BackTester:
                 len([el for el in orders if el.status == OrderStatus.CANCELLED]),
                 no_of_wins,
                 no_of_losses,
-                round(avg_win * 10000, 2),
-                round(avg_loss * 10000, 2),
+                round(avg_win * self.lot_size, 2),
+                round(avg_loss * self.lot_size, 2),
                 round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2),
                 abs(round(avg_win / avg_loss, 2)) if avg_loss else 0,
                 round(total_pips, 4),
