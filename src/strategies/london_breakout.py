@@ -1,9 +1,9 @@
 import logging
 import math
-from datetime import timedelta, datetime
+from datetime import datetime
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     ohlc['returns'] = np.log(ohlc['close'] / ohlc['close'].shift(1))
 
     logging.info(ohlc[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips', 'returns']])
-    back_tester = BackTester()
+    back_tester = BackTester(strategy='London Breakout')
     dfs = []
     for adj in (0, 5, 10,):
         orders = create_orders(ohlc, adj=adj / 10000)

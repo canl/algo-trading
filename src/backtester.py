@@ -3,15 +3,14 @@ from matplotlib import pyplot as plt
 from functools import reduce
 from src.order_utils.order import Order, OrderStatus
 
-plt.style.use('ggplot')
-
 
 class BackTester:
     """
     Purpose: Backtesting and output performance report
     """
 
-    def __init__(self, initial_cash: float = 10000, commission: float = .0, lot_size: float = 100000):
+    def __init__(self, strategy: str = '', initial_cash: float = 10000, commission: float = .0, lot_size: float = 100000):
+        self.strategy = strategy
         self.initial_cash = initial_cash
         self.commission = commission
         self.lot_size = lot_size
@@ -30,18 +29,28 @@ class BackTester:
         performance = []
         for time, ohlc in price_dict.items():
             for o in orders:
-                should_take_action = o.is_filled and time >= o.last_update
+                should_take_action = o.is_open and time >= o.last_update
                 if should_take_action:
-                    if o.is_long:
-                        if ohlc['low'] <= o.sl:
-                            o.close_with_loss(time)
-                        elif ohlc['high'] > o.tp:
-                            o.close_with_win(time)
-                    elif o.is_short:
-                        if ohlc['high'] >= o.sl:
-                            o.close_with_loss(time)
-                        elif ohlc['low'] < o.tp:
-                            o.close_with_win(time)
+                    # Fill pending orders
+                    if o.is_pending:
+                        if o.is_long:
+                            if ohlc['high'] > o.entry:  # buy order filled
+                                o.fill(time)
+                        elif o.is_short:
+                            if ohlc['low'] < o.entry:  # sell order filled
+                                o.fill(time)
+                    # Close filled orders
+                    if o.is_filled:
+                        if o.is_long:
+                            if ohlc['low'] <= o.sl:
+                                o.close_with_loss(time)
+                            elif ohlc['high'] > o.tp:
+                                o.close_with_win(time)
+                        elif o.is_short:
+                            if ohlc['high'] >= o.sl:
+                                o.close_with_loss(time)
+                            elif ohlc['low'] < o.tp:
+                                o.close_with_win(time)
 
             position = sum(o.pnl for o in orders) * self.lot_size + self.initial_cash  # 1 standard lot = 100,000
             performance.append({
@@ -101,12 +110,18 @@ class BackTester:
         df = pd.DataFrame(to_csv)
         df.to_csv(path)
 
-    @staticmethod
-    def plot_chart(dfs: list):
+    def plot_chart(self, dfs: list):
         """
         plot based on the back testing result
         :param dfs: lis of pd.DataFrame
         """
+        plt.style.use('ggplot')
+
         df_final = reduce(lambda left, right: pd.merge(left, right, on='time'), dfs)
         df_final.plot()
+
+        plt.xlabel('Time')
+        plt.ylabel('Performance')
+        plt.title(f'Performance of {self.strategy}')
+        plt.legend()
         plt.show()

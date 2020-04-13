@@ -83,7 +83,7 @@ if __name__ == '__main__':
     dfs = []
     instruments = [('XAU_USD', 100), ('GBP_USD', 100000), ('EUR_USD', 100000), ('GBP_AUD', 100000),
                    ('USD_JPY', 1000), ('AUD_USD', 100000), ('USD_SGD', 100000)]
-    back_tester = BackTester()
+    back_tester = BackTester(strategy='MA with ATR exit')
     for instrument, lot_size in instruments:
         df = sample_data(instrument=instrument, start=datetime(2005, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
         orders = create_orders(df, 1.5, 3)
