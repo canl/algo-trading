@@ -25,7 +25,9 @@ def cancel_pending_orders():
     pending_orders = get_pending_orders()
     if pending_orders:
         for o in pending_orders:
-            cancel_order(o.get('id'))
+            # We do not want to cancel TAKE_PROFIT and STOP_LOSS pending orders
+            if o.get('type') == 'MARKET_IF_TOUCHED':
+                cancel_order(o.get('id'))
 
 
 def run(live_run=False):
