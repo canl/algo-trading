@@ -1,11 +1,10 @@
 import argparse
 import logging
-from datetime import timedelta, datetime
 
-from src.common import read_price_df
+import pandas as pd
+
+from src.common import api_request, transform
 from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order
-
-
 # Rules:
 #   1. Find the high and low between 00:00 to 08:00 UTC
 #   2. Place a buy stop order 2 pips above high with stop loss
@@ -19,6 +18,7 @@ from src.order_utils.order_api import placing_order, get_pending_orders, cancel_
 #       T/P (Minimum Price - (Maximum Price - Minimum Price))
 #       S/L (Maximum Price + 2 pips)
 #   4. Inactive pending orders will expire next trading day at 08:00 AM (GMT).
+from src.position_calculator import pos_size
 
 
 def cancel_pending_orders():
@@ -30,28 +30,44 @@ def cancel_pending_orders():
                 cancel_order(o.get('id'))
 
 
+def send_alert(last_high, last_low, diff, position_size, adj):
+    contents = [
+        f'last 8 hours high: {last_high}',
+        f'last 8 hours high: {last_low}',
+        f'diff: {round(diff, 4)}',
+        f'position size: {position_size}',
+        f'adjustment: {adj} pips',
+        f'buy instruction: Buy {position_size} lot at Entry Price: {last_high}, TP: {last_high + diff + adj / 10000}, SL: {last_low}',
+        f'sell instruction: Sell {position_size} lot at Entry Price: {last_low}, TP: {last_low - diff - adj / 10000}, SL: {last_high}'
+    ]
+    print('\n'.join(contents))
+
+
 def run(live_run=False):
-    from_date = datetime.today() - timedelta(days=3)
-    logging.info(f'Reading date from {from_date} to now')
-    df = read_price_df('GBP_USD', 'H1', start=from_date)
-    df['last_8_high'] = df['high'].rolling(8).max()
-    df['last_8_low'] = df['low'].rolling(8).min()
-    df['diff_pips'] = (df['last_8_high'] - df['last_8_low']) * 10000
+    # 5 pips adjustment for TP
+    adj = 5 / 10000
+    param = {
+        "count": 8,
+        "granularity": "H1"
+    }
+    resp = api_request(instrument='GBP_USD', p=param)
+    df = pd.DataFrame(transform(resp['candles'])).set_index('time')
+    logging.info(df)
+    last_high = df['high'].max()
+    last_low = df['low'].min()
+    diff = last_high - last_low
+    logging.info(f'Calculating position size for sl pips {diff}')
+    position_size = pos_size(account_balance=10000, risk_pct=0.03, sl_pips=diff * 10000, instrument='GBP_USD')
 
-    df_08 = df.at_time('8:00')
-    logging.info(df_08)
+    logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {last_high + diff + adj}, SL: {last_low}')
+    logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {last_low - diff - adj}, SL: {last_high}')
 
-    last_high = df_08['last_8_high'][-1]
-    last_low = df_08['last_8_low'][-1]
-    last_diff = df_08['diff_pips'][-1] / 10000
-
-    logging.info(f'Placing buy order. Price: {last_high}, TP: {last_high + last_diff}, SL: {last_low}')
-    logging.info(f'Placing sell order. Price: {last_low}, TP: {last_low - last_diff}, SL: {last_high}')
+    send_alert(last_high, last_low, diff, position_size, 5)
 
     if live_run:
         cancel_pending_orders()
-        placing_order(instrument='GBP_USD', side='buy', units=100000, price=last_high, tp=last_high + last_diff, sl=last_low)
-        placing_order(instrument='GBP_USD', side='sell', units=100000, price=last_low, tp=last_low - last_diff, sl=last_high)
+        placing_order(instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=last_high + diff, sl=last_low)
+        placing_order(instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=last_low - diff, sl=last_high)
     else:
         logging.info('Dry run only for testing.')
 
