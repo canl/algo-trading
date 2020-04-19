@@ -1,9 +1,8 @@
 from unittest import TestCase
+
 import pandas as pd
-from datetime import datetime, timedelta
 
 from src.backtester import BackTester
-from src.common import get_candlesticks, build_params
 from src.order_utils.order import Order, OrderStatus, OrderSide
 
 
