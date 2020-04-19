@@ -62,15 +62,20 @@ def read_price_data(instrument, granularity, start=None, end=None, max_count=400
     final_response = []
     for p in params:
         try:
-            logger.info(f'Reading price data for {instrument}\n{p}')
-            r = v20instruments.InstrumentsCandles(instrument=instrument, params=p)
-            resp = api.request(r)
+            resp = api_request(instrument, p)
             final_response.extend(resp['candles'])
         except Exception as err:
             print("Error: {}".format(err))
             exit(2)
 
     return final_response
+
+
+def api_request(instrument, p):
+    logger.info(f'Reading price data for {instrument}\n{p}')
+    r = v20instruments.InstrumentsCandles(instrument=instrument, params=p)
+    resp = api.request(r)
+    return resp
 
 
 def transform(raw_data):
