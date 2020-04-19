@@ -55,32 +55,34 @@ def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = F
     orders = []
     for time, ohlc in price_df.to_dict('index').items():
         # x - (y - x) = 2x - y
-        if math.isnan(ohlc['last_8_high']):
+        buy_entry = ohlc['last_8_high']
+        sell_entry = ohlc['last_8_low']
+        if math.isnan(buy_entry):
             continue
 
         if time.hour == 8:
             for order in [el for el in orders if el.status == OrderStatus.PENDING]:
                 order.status = OrderStatus.CANCELLED
 
-            buy_tp = round(ohlc['last_8_high'] * 2 - ohlc['last_8_low'] + adj, 5)
-            buy_sl = ohlc['last_8_low']
-            sell_tp = round(ohlc['last_8_low'] * 2 - ohlc['last_8_high'] - adj, 5)
-            sell_sl = ohlc['last_8_high']
+            buy_tp = round(buy_entry * 2 - sell_entry + adj, 5)
+            buy_sl = sell_entry
+            sell_tp = round(sell_entry * 2 - buy_entry - adj, 5)
+            sell_sl = buy_entry
 
             if momentum_signal:
                 if ohlc['momentum_signal'] == 1:
-                    orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
                 elif ohlc['momentum_signal'] == -1:
-                    orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
 
             elif verify_ema:
                 if ohlc['low'] >= ohlc['ema']:
-                    orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
                 elif ohlc['high'] <= ohlc['ema']:
-                    orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
             else:
-                orders.append(Order(time, 'long', ohlc['last_8_high'], buy_sl, buy_tp, 0, OrderStatus.PENDING))
-                orders.append(Order(time, 'short', ohlc['last_8_low'], sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
 
         for order in orders:
             # Try to fill pending orders
