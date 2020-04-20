@@ -38,8 +38,8 @@ def send_alert(last_high, last_low, diff, position_size, adj):
         'diff': round(diff, 4),
         'position size': position_size,
         'adjustment': f'{adj} pips',
-        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, TP: {last_high + diff + adj / 10000}, SL: {last_low}',
-        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, TP: {last_low - diff - adj / 10000}, SL: {last_high}'
+        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {last_high + diff + adj / 10000}',
+        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, SL: {last_high}, TP: {last_low - diff - adj / 10000}'
     }
     css = """
     <style>
@@ -47,12 +47,12 @@ def send_alert(last_high, last_low, diff, position_size, adj):
           border-collapse: collapse;
           width: 100%;
         }
-        
+
         th, td {
           text-align: left;
           padding: 8px;
         }
-        
+
         tr:nth-child(even) {background-color: #f2f2f2;}
     </style>
     """
@@ -77,7 +77,7 @@ def run(live_run=False):
     last_low = df['low'].min()
     diff = last_high - last_low
     logging.info(f'Calculating position size for sl pips {diff}')
-    position_size = pos_size(account_balance=10000, risk_pct=0.03, sl_pips=diff * 10000, instrument='GBP_USD')
+    position_size = pos_size(account_balance=10000, risk_pct=0.025, sl_pips=diff * 10000, instrument='GBP_USD')
 
     logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {last_high + diff + adj}, SL: {last_low}')
     logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {last_low - diff - adj}, SL: {last_high}')
