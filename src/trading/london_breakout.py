@@ -67,7 +67,7 @@ def run(live_run=False):
     # 5 pips adjustment for TP
     adj = 5 / 10000
     param = {
-        "count": 8,
+        "count": 9,
         "granularity": "H1"
     }
     resp = api_request(instrument='GBP_USD', p=param)
