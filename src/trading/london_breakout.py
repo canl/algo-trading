@@ -42,7 +42,7 @@ def send_alert(last_high, last_low, diff, position_size, adj, trend='no trend'):
         'current trend': f"{trend} {arrow}",
         'last 8 hours high': last_high,
         'last 8 hours low': last_low,
-        'diff': round(diff, 4),
+        'diff': f'{round(diff * 10000, 4)} pips',
         'position size': position_size,
         'adjustment': f'{adj} pips',
         'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {round(last_high + diff + adj / 10000, 5)}',
