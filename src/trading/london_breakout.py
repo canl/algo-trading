@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.common import api_request, transform
+from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
 from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order
 # Rules:
@@ -21,6 +22,10 @@ from src.order_utils.order_api import placing_order, get_pending_orders, cancel_
 #   4. Inactive pending orders will expire next trading day at 08:00 AM (GMT).
 from src.position_calculator import pos_size
 
+ADJUSTMENT = 5 / 10000
+LOOK_BACK_HOURS = 9
+TREND_WINDOW = 60
+
 
 def cancel_pending_orders():
     pending_orders = get_pending_orders()
@@ -31,15 +36,17 @@ def cancel_pending_orders():
                 cancel_order(o.get('id'))
 
 
-def send_alert(last_high, last_low, diff, position_size, adj):
+def send_alert(last_high, last_low, diff, position_size, adj, trend='no trend'):
+    arrow = u'\u2191' if trend == 'up' else (u'\u2193' if trend == 'down' else '')
     contents = {
+        'current trend': f"{trend} {arrow}",
         'last 8 hours high': last_high,
         'last 8 hours low': last_low,
         'diff': round(diff, 4),
         'position size': position_size,
         'adjustment': f'{adj} pips',
-        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {last_high + diff + adj / 10000}',
-        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, SL: {last_high}, TP: {last_low - diff - adj / 10000}'
+        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {round(last_high + diff + adj / 10000, 5)}',
+        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, SL: {last_high}, TP: {round(last_low - diff - adj / 10000, 5)}'
     }
     css = """
     <style>
@@ -65,24 +72,32 @@ def send_alert(last_high, last_low, diff, position_size, adj):
 
 def run(live_run=False):
     # 5 pips adjustment for TP
-    adj = 5 / 10000
     param = {
-        "count": 9,
+        "count": 120,
         "granularity": "H1"
     }
     resp = api_request(instrument='GBP_USD', p=param)
     df = pd.DataFrame(transform(resp['candles'])).set_index('time')
     logging.info(df)
-    last_high = df['high'].max()
-    last_low = df['low'].min()
+
+    trend_up = trending_up(df['close'], TREND_WINDOW).iloc[-1]
+    trend_down = trending_down(df['close'], TREND_WINDOW).iloc[-1]
+
+    trend = 'up' if trend_up else ('down' if trend_down else 'no trend')
+
+    df[f'last_{LOOK_BACK_HOURS}_high'] = df['high'].rolling(LOOK_BACK_HOURS).max()
+    df[f'last_{LOOK_BACK_HOURS}_low'] = df['low'].rolling(LOOK_BACK_HOURS).min()
+
+    last_high = df[f'last_{LOOK_BACK_HOURS}_high'][-1]
+    last_low = df[f'last_{LOOK_BACK_HOURS}_low'][-1]
     diff = last_high - last_low
     logging.info(f'Calculating position size for sl pips {diff}')
     position_size = pos_size(account_balance=10000, risk_pct=0.025, sl_pips=diff * 10000, instrument='GBP_USD')
 
-    logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {last_high + diff + adj}, SL: {last_low}')
-    logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {last_low - diff - adj}, SL: {last_high}')
+    logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {last_high + diff + ADJUSTMENT}, SL: {last_low}')
+    logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {last_low - diff - ADJUSTMENT}, SL: {last_high}')
 
-    send_alert(last_high, last_low, diff, position_size, 5)
+    send_alert(last_high, last_low, diff, position_size, 5, trend)
 
     if live_run:
         cancel_pending_orders()
