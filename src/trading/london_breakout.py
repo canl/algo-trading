@@ -36,7 +36,7 @@ def cancel_pending_orders():
                 cancel_order(o.get('id'))
 
 
-def send_alert(last_high, last_low, diff, position_size, adj, trend='no trend'):
+def send_alert(last_high, last_low, diff, position_size, adj, long_tp, short_tp, trend='no trend'):
     arrow = u'\u2191' if trend == 'up' else (u'\u2193' if trend == 'down' else '')
     contents = {
         'current trend': f"{trend} {arrow}",
@@ -45,8 +45,8 @@ def send_alert(last_high, last_low, diff, position_size, adj, trend='no trend'):
         'diff': f'{round(diff * 10000, 4)} pips',
         'position size': position_size,
         'adjustment': f'{adj} pips',
-        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {round(last_high + diff + adj / 10000, 5)}',
-        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, SL: {last_high}, TP: {round(last_low - diff - adj / 10000, 5)}'
+        'buy instruction': f'Buy {position_size} lot at Entry Price: {last_high}, SL: {last_low}, TP: {round(long_tp, 5)}',
+        'sell instruction': f'Sell {position_size} lot at Entry Price: {last_low}, SL: {last_high}, TP: {round(short_tp, 5)}'
     }
     css = """
     <style>
@@ -94,15 +94,17 @@ def run(live_run=False):
     logging.info(f'Calculating position size for sl pips {diff}')
     position_size = pos_size(account_balance=10000, risk_pct=0.025, sl_pips=diff * 10000, instrument='GBP_USD')
 
-    logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {last_high + diff + ADJUSTMENT}, SL: {last_low}')
-    logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {last_low - diff - ADJUSTMENT}, SL: {last_high}')
+    long_tp = last_high + diff + ADJUSTMENT
+    short_tp = last_low - diff - ADJUSTMENT
+    logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {long_tp}, SL: {last_low}')
+    logging.info(f'Placing {position_size} lot sell order. Price: {last_low}, TP: {short_tp}, SL: {last_high}')
 
-    send_alert(last_high, last_low, diff, position_size, 5, trend)
+    send_alert(last_high, last_low, diff, position_size, 5, long_tp, short_tp, trend)
 
     if live_run:
         cancel_pending_orders()
-        placing_order(instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=last_high + diff, sl=last_low)
-        placing_order(instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=last_low - diff, sl=last_high)
+        placing_order(instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=long_tp, sl=last_low)
+        placing_order(instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=short_tp, sl=last_high)
     else:
         logging.info('Dry run only for testing.')
 
