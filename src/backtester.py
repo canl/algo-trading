@@ -75,23 +75,25 @@ class BackTester:
         win_percent = round(no_of_wins / (no_of_wins + no_of_losses), 4)
         win_loss_ratio = abs(round(avg_win / avg_loss, 2)) if avg_loss else 0
         expectancy = round(win_percent * win_loss_ratio - (1 - win_percent), 4)
-        print(
-            '{} orders placed.\nbuy orders: {}\nsell orders: {}\nclosed orders: {}\ncancelled orders: {}\nwin Orders: {}\nloss orders: {}\n'
-            'avg_win: {} pips\navg_loss: {} pips\nwin%: {}%\nwin/loss ratio: {}\ntotal pnl: {}\nexpectancy: {}'.format(
-                len(orders),
-                len([el for el in orders if el.is_long]),
-                len([el for el in orders if el.is_short]),
-                len([el for el in orders if el.status == OrderStatus.CLOSED]),
-                len([el for el in orders if el.status == OrderStatus.CANCELLED]),
-                no_of_wins,
-                no_of_losses,
-                round(avg_win * self.lot_size, 2),
-                round(avg_loss * self.lot_size, 2),
-                round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2),
-                abs(round(avg_win / avg_loss, 2)) if avg_loss else 0,
-                round(total_pips, 4),
-                expectancy
-            ))
+
+        stats = {
+            'total orders placed': len(orders),
+            'buys': len([el for el in orders if el.is_long]),
+            'sells': len([el for el in orders if el.is_short]),
+            'closed': len([el for el in orders if el.status == OrderStatus.CLOSED]),
+            'cancelled': len([el for el in orders if el.status == OrderStatus.CANCELLED]),
+            'wins': no_of_wins,
+            'losses': no_of_losses,
+            'average win': f'{round(avg_win * self.lot_size, 2)} pips',
+            'average loss': f'{round(avg_loss * self.lot_size, 2)} pips',
+            'win rate': f'{round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2)}%',
+            'win / loss ratio': abs(round(avg_win / avg_loss, 2)) if avg_loss else 0,
+            'total pnl': round(total_pips, 4),
+            'expectancy': expectancy
+        }
+
+        for k, v in stats.items():
+            print(f'{k}: {v}')
 
     @staticmethod
     def output_csv(orders: list, path=r'C:\temp\order_performs.csv'):
