@@ -1,13 +1,13 @@
 from datetime import datetime
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
 from src.common import read_price_df
-from src.indicators import wma, atr
+from src.finta.ta import TA
 from src.order_utils.order import Order, OrderStatus, OrderSide
-
 
 # Strategy rules:
 #   Buy signal:
@@ -21,11 +21,13 @@ from src.order_utils.order import Order, OrderStatus, OrderSide
 #       3. SL 1.5 * ATR
 #       4. TP 3 * ATR
 
+ta = TA()
+
 
 def signal(df):
     conditions = [
-        (df['ema_50'] > df['ema_200']) & (df['open'] < df['ema_50']) & (df['ema_50'] < df['close']),
-        (df['ema_50'] < df['ema_200']) & (df['open'] > df['ema_50']) & (df['ema_50'] > df['close']),
+        (df['smma_50'] > df['smma_200']) & (df['open'] < df['smma_50']) & (df['smma_50'] < df['close']),
+        (df['smma_50'] < df['smma_200']) & (df['open'] > df['smma_50']) & (df['smma_50'] > df['close']),
     ]
     choices = [1, -1]
     return np.select(conditions, choices, default=0)
@@ -47,10 +49,10 @@ def plot(df):
 
 def sample_data(instrument: str, start: datetime, end: datetime, short_window: int = 100, long_window: int = 350) -> pd.DataFrame:
     price_feed = read_price_df(instrument=instrument, granularity='D', start=start, end=end)
-    price_feed['ema_50'] = wma(price_feed['close'], short_window)
-    price_feed['ema_200'] = wma(price_feed['close'], long_window)
-    price_feed['atr'] = atr(price_feed[['high', 'low', 'close']])
-    price_feed['signal'] = signal(price_feed[['open', 'close', 'ema_50', 'ema_200']])
+    price_feed['smma_50'] = ta.SMMA(price_feed, period=short_window, adjust=False)
+    price_feed['smma_200'] = ta.SMMA(price_feed, period=long_window, adjust=False)
+    price_feed['atr'] = ta.ATR(price_feed[['high', 'low', 'close']])
+    price_feed['signal'] = signal(price_feed[['open', 'close', 'smma_50', 'smma_200']])
     return price_feed
 
 
@@ -88,6 +90,7 @@ if __name__ == '__main__':
         df = sample_data(instrument=instrument, start=datetime(2005, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
         orders = create_orders(df, 1.5, 3)
         back_tester.lot_size = lot_size
+        print(f"{'-' * 10} {instrument} {'-' * 10}")
         p = back_tester.run(df, orders, suffix=f'_{instrument}')
         dfs.append(p)
     back_tester.plot_chart(dfs)
