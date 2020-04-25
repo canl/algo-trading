@@ -9,6 +9,7 @@ from src.common import read_price_df
 from src.finta.ta import TA
 from src.order_utils.order import Order, OrderStatus, OrderSide
 
+
 # Strategy rules:
 #   Buy signal:
 #       1. close price cross 50 EMA from the bottom
@@ -21,13 +22,11 @@ from src.order_utils.order import Order, OrderStatus, OrderSide
 #       3. SL 1.5 * ATR
 #       4. TP 3 * ATR
 
-ta = TA()
 
-
-def signal(df):
+def signal(df, short_win, long_win):
     conditions = [
-        (df['smma_50'] > df['smma_200']) & (df['open'] < df['smma_50']) & (df['smma_50'] < df['close']),
-        (df['smma_50'] < df['smma_200']) & (df['open'] > df['smma_50']) & (df['smma_50'] > df['close']),
+        (df[f'smma_{short_win}'] > df[f'smma_{long_win}']) & (df['open'] < df[f'smma_{short_win}']) & (df[f'smma_{short_win}'] < df['close']),
+        (df[f'smma_{short_win}'] < df[f'smma_{long_win}']) & (df['open'] > df[f'smma_{short_win}']) & (df[f'smma_{short_win}'] > df['close']),
     ]
     choices = [1, -1]
     return np.select(conditions, choices, default=0)
@@ -49,10 +48,10 @@ def plot(df):
 
 def sample_data(instrument: str, start: datetime, end: datetime, short_window: int = 100, long_window: int = 350) -> pd.DataFrame:
     price_feed = read_price_df(instrument=instrument, granularity='D', start=start, end=end)
-    price_feed['smma_50'] = ta.SMMA(price_feed, period=short_window, adjust=False)
-    price_feed['smma_200'] = ta.SMMA(price_feed, period=long_window, adjust=False)
-    price_feed['atr'] = ta.ATR(price_feed[['high', 'low', 'close']])
-    price_feed['signal'] = signal(price_feed[['open', 'close', 'smma_50', 'smma_200']])
+    price_feed[f'smma_{short_window}'] = TA.SMMA(price_feed, period=short_window, adjust=False)
+    price_feed[f'smma_{long_window}'] = TA.SMMA(price_feed, period=long_window, adjust=False)
+    price_feed['atr'] = TA.ATR(price_feed[['high', 'low', 'close']])
+    price_feed['signal'] = signal(price_feed[['open', 'close', f'smma_{short_window}', f'smma_{long_window}']], short_window, long_window)
     return price_feed
 
 
