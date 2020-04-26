@@ -71,6 +71,9 @@ def send_alert(last_high, last_low, diff, position_size, adj, long_tp, short_tp,
 
 
 def run(live_run=False):
+    if datetime.today().weekday() in (5, 6):
+        logging.info("Do not run over the weekend!")
+        return
     # 5 pips adjustment for TP
     param = {
         "count": 120,
