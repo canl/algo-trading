@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 
 from src.common import api_request
 
@@ -22,6 +23,7 @@ def pos_size(account_balance: float, risk_pct: float, sl_pips: float, instrument
     return round(risk_amt / (sl_pips * pip_value) * float(close), 4)
 
 
+@lru_cache(1000)
 def get_fx_rate(account_ccy: str, instrument: str):
     """
     Get latest fx rates against USD
