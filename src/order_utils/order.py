@@ -15,7 +15,7 @@ class OrderSide:
 
 
 class Order(object):
-    def __init__(self, order_date, side, entry, sl=None, tp=None, pnl=0, status=OrderStatus.PENDING, last_update=None):
+    def __init__(self, order_date, side, entry, sl=None, tp=None, pnl=0, status=OrderStatus.PENDING, last_update=None, units=100000):
         """
         Order for execution
         :param order_date: Datetime
@@ -26,6 +26,7 @@ class Order(object):
         :param pnl: float
         :param status: OrderStatus
         :param last_update: Datetime
+        :param units: default 1 standard lot, 100,000 units
         """
         self.id = ''.join(random.choice('0123456789ABCDEF') for i in range(6))  # not unique but should be good enough
         self.order_date = order_date
@@ -36,6 +37,7 @@ class Order(object):
         self.pnl = pnl
         self.status = status
         self.last_update = last_update or self.order_date
+        self.units = units
 
     @property
     def outcome(self):
@@ -76,9 +78,13 @@ class Order(object):
         self.last_update = cancel_time
 
     def close_with_win(self, close_time, close_price=None):
+        if close_price:
+            self.tp = close_price
         self._close_order(close_time, close_price or self.tp)
 
     def close_with_loss(self, close_time, close_price=None):
+        if close_price:
+            self.sl = close_price
         self._close_order(close_time, close_price or self.sl)
 
     def _close_order(self, close_time, close_price):
@@ -93,6 +99,7 @@ class Order(object):
     def __repr__(self):
         additional_info = f' with stop loss {self.sl} / take profit {self.tp}' if self.sl or self.tp else ''
         return f'<{self.id}: ' \
-               f'{self.order_date} {self.side} @ {self.entry}{additional_info}. Status is {self.status} with pnl {self.pnl}. Last updated @ {self.last_update}>'
+               f'{self.order_date} {self.side} {self.units} units @ {self.entry}{additional_info}. ' \
+               f'Status is {self.status} with pnl {self.pnl}. Last updated @ {self.last_update}>'
 
     __str__ = __repr__
