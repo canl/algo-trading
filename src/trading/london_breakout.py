@@ -6,7 +6,9 @@ import pandas as pd
 from src.common import api_request, transform
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
-from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order
+from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType
+from src.position_calculator import pos_size
+
 # Rules:
 #   1. Find the high and low between 00:00 to 08:00 UTC
 #   2. Place a buy stop order 2 pips above high with stop loss
@@ -20,7 +22,7 @@ from src.order_utils.order_api import placing_order, get_pending_orders, cancel_
 #       T/P (Minimum Price - (Maximum Price - Minimum Price))
 #       S/L (Maximum Price + 2 pips)
 #   4. Inactive pending orders will expire next trading day at 08:00 AM (GMT).
-from src.position_calculator import pos_size
+
 
 ADJUSTMENT = 5 / 10000
 LOOK_BACK_HOURS = 9
@@ -106,8 +108,8 @@ def run(live_run=False):
 
     if live_run:
         cancel_pending_orders()
-        placing_order(instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=long_tp, sl=last_low)
-        placing_order(instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=short_tp, sl=last_high)
+        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=long_tp, sl=last_low)
+        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=short_tp, sl=last_high)
     else:
         logging.info('Dry run only for testing.')
 
