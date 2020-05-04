@@ -25,7 +25,7 @@ from src.position_calculator import pos_size
 
 
 ADJUSTMENT = 5 / 10000
-LOOK_BACK_HOURS = 9
+LOOK_BACK_HOURS = 10
 TREND_WINDOW = 60
 
 
