@@ -1,7 +1,9 @@
+from functools import reduce
+
 import pandas as pd
 from matplotlib import pyplot as plt
-from functools import reduce
-from src.order_utils.order import Order, OrderStatus
+
+from src.order_utils.order import OrderStatus
 
 
 class BackTester:
@@ -15,7 +17,7 @@ class BackTester:
         self.commission = commission
         self.lot_size = lot_size
 
-    def run(self, price_feed: pd.DataFrame, orders: list, print_stats=True, output_csv=False, suffix=''):
+    def run(self, price_feed: pd.DataFrame, orders: list, print_stats=True, output_csv=False, suffix='') -> pd.DataFrame:
         """
         bask testing strategies
         :param price_feed: Price feed DataFrame
@@ -23,7 +25,7 @@ class BackTester:
         :param print_stats: bool, printout stats
         :param output_csv: bool, output csv
         :param suffix: used for chart plotting in order to differentiate strategy with different parameters
-        :return:
+        :return: pd.DataFrame
         """
         price_dict = price_feed.to_dict('index')
         performance = []
