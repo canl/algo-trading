@@ -1,5 +1,5 @@
 """
-A simple mean reversion strategy wit back testing result. The strategy only works when market is ranging,
+A simple mean reversion strategy with back testing result. The strategy only works when market is ranging,
 which is around 70% of the time.
 
 Rules:
@@ -27,7 +27,6 @@ import logging
 from datetime import timedelta
 
 import pandas as pd
-from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
 from src.order_utils.order import Order, OrderSide, OrderStatus
@@ -108,15 +107,23 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
 
 if __name__ == '__main__':
     # TODO: refactoring to support multiple currencies
-    ccy_pair = 'EUR_USD'
-    test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2014-01-01', end_date='2015-04-30')
-    back_tester = BackTester(strategy='mean reversion', lot_size=10000)
-    back_tester.print_stats(test_orders)
+    instruments = [
+        ('EUR_USD', 10000), ('USD_CHF', 10000), ('USD_CAD', 10000), ('EUR_GBP', 10000), ('USD_SGD', 10000),
+        ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('XAU_USD', 1), ('USD_JPY', 100)
+    ]
+    dfs = []
+    back_tester = BackTester(strategy='mean reversion')
+    for ccy_pair, lot_size in instruments:
+        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30')
+        back_tester.lot_size = lot_size
+        print(f"{'*' * 30} {ccy_pair} {'*' * 30}")
+        back_tester.print_stats(test_orders)
 
-    df = pd.DataFrame([{'time': o.order_date, 'pnl': o.pnl * 10000} for o in test_orders])
-    df['time'] = pd.to_datetime(df['time'])
-    df = df.set_index('time')
+        df = pd.DataFrame([{'time': o.order_date, 'pnl': o.pnl * lot_size} for o in test_orders])
+        df['time'] = pd.to_datetime(df['time'])
+        df = df.resample('D', on='time')['pnl'].sum().to_frame()
 
-    df[f'cumsum_{ccy_pair.lower()}'] = df['pnl'].cumsum()
-    df[[f'cumsum_{ccy_pair.lower()}']].plot()
-    plt.show()
+        df[f'cumsum_{ccy_pair.lower()}'] = df['pnl'].cumsum()
+        dfs.append(df[[f'cumsum_{ccy_pair.lower()}']])
+
+    back_tester.plot_chart(dfs)
