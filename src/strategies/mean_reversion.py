@@ -60,7 +60,7 @@ def process_filled(order, ohlc):
 
 
 def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj: float, start_date: str = None, end_date: str = None):
-    price_df = pd.read_csv(f'c:/temp/{instrument.lower()}_h1_enrich_10_20.csv')
+    price_df = pd.read_csv(f'c:/temp/{instrument.lower()}_h1_enrich.csv')
     '''
          #   Column        Non-Null Count  Dtype  
         ---  ------        --------------  -----  
@@ -74,7 +74,7 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
          7   last_10_low   65770 non-null  float64
          8   last_20_low   65770 non-null  float64
          9   day_close     65770 non-null  float64
-         10  day_atr_20    65770 non-null  float64
+         10  day_atr       65770 non-null  float64
          11  day_ema_55    65770 non-null  float64
     '''
 
@@ -88,14 +88,14 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
 
         open_long = [o for o in orders if o.is_long and o.is_open]
         open_short = [o for o in orders if o.is_short and o.is_open]
-        atr = ohlc['day_atr_20']
-        if ohlc['high'] == ohlc[f'last_{window}_high'] and len(open_short) < max_orders:
+        atr = ohlc['day_atr']
+        if ohlc['high'] == ohlc[f'last_{window}_high'] and len(open_short) < max_orders and 30 <= ohlc['day_rsi'] <= 70:
             # Place a short limit order
             entry = ohlc['high']
             orders.append(
                 Order(order_date=ohlc['time'], side=OrderSide.SHORT, entry=entry + entry_adj, sl=entry + atr, tp=entry - atr - tp_adj, status=OrderStatus.PENDING)
             )
-        elif ohlc['low'] == ohlc[f'last_{window}_low'] and len(open_long) < max_orders:
+        elif ohlc['low'] == ohlc[f'last_{window}_low'] and len(open_long) < max_orders and 30 <= ohlc['day_rsi'] <= 70:
             # Place a long limit order
             entry = ohlc['low']
             orders.append(
@@ -106,13 +106,12 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
 
 
 if __name__ == '__main__':
-    # TODO: refactoring to support multiple currencies
     instruments = [
         ('EUR_USD', 10000), ('USD_CHF', 10000), ('USD_CAD', 10000), ('EUR_GBP', 10000), ('USD_SGD', 10000),
         ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('XAU_USD', 1), ('USD_JPY', 100)
     ]
     dfs = []
-    back_tester = BackTester(strategy='mean reversion')
+    back_tester = BackTester(strategy='mean reversion ')
     for ccy_pair, lot_size in instruments:
         test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30')
         back_tester.lot_size = lot_size
