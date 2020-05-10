@@ -5,8 +5,14 @@ which is around 70% of the time.
 Rules:
 
     Entry:
-        1. Place a long limit order if price breaks 20 days low with entry price as: 20 days low - 5pips adj
-        2. Place a short limit order if price breaks 20 days high with entry price as: 20 days high + 5pips adj
+        1. Place a long limit order if:
+            1) price breaks 20 days low
+            2) RSI between 30 to 70
+            3) with entry price as: 20 days low - 5pips adj
+        2. Place a short limit order if:
+            1) price breaks 20 days high
+            2) RSI between 30 to 70
+            3) with entry price as: 20 days high + 5pips adj
         3. Cancel the order if it cannot be filled in 3 hours
         4. Maximum 4 orders allowed for each long or short direction. Do not want to against the trend
 
