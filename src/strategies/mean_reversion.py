@@ -65,7 +65,20 @@ def process_filled(order, ohlc):
             order.close_with_win(ohlc['time'])
 
 
-def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj: float, start_date: str = None, end_date: str = None):
+def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj: float, start_date: str = None, end_date: str = None, output_result: bool = False):
+    """
+    Back testing the strategy
+    :param instrument: ccy pair, eg. EUR_USD
+    :param window: period of high or low
+    :param max_orders: max orders allowed in the same direction
+    :param entry_adj: entry price adj
+    :param tp_adj: tp adj
+    :param start_date: str
+    :param end_date: str
+    :param output_result: output to csv for investigations
+    :return:
+        list of tested orders
+    """
     price_df = pd.read_csv(f'c:/temp/{instrument.lower()}_h1_enrich.csv')
     '''
          #   Column        Non-Null Count  Dtype  
@@ -81,7 +94,8 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
          8   last_20_low   65770 non-null  float64
          9   day_close     65770 non-null  float64
          10  day_atr       65770 non-null  float64
-         11  day_ema_55    65770 non-null  float64
+         11  day_rsi       65770 non-null  float64
+         12  day_ema_55    65770 non-null  float64
     '''
 
     if start_date and end_date:
@@ -108,7 +122,29 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
                 Order(order_date=ohlc['time'], side=OrderSide.LONG, entry=entry - entry_adj, sl=entry - atr, tp=entry + atr + tp_adj, status=OrderStatus.PENDING)
             )
 
+    if output_result:
+        output_csv(instrument, price_df, orders)
     return orders
+
+
+def output_csv(instrument: str, price_feed: pd.DataFrame, orders: list):
+    price_feed = price_feed.set_index('time')
+    order_df = pd.DataFrame([
+        {
+            'time': o.order_date,
+            'create_date': o.order_date,
+            'side': o.side,
+            'entry': o.entry,
+            'sl': o.sl,
+            'tp': o.tp,
+            'pnl_in_pips': o.pnl * lot_size,
+            'outcome': o.outcome,
+            'close_date': o.last_update,
+            'is_cancelled': o.is_cancelled,
+        } for o in orders]).set_index('time')
+    merged = price_feed.join(order_df, how="left")
+    print(merged)
+    merged.to_csv(f'C:/temp/{instrument.lower()}_back_test.csv')
 
 
 if __name__ == '__main__':
@@ -119,7 +155,7 @@ if __name__ == '__main__':
     dfs = []
     back_tester = BackTester(strategy='mean reversion ')
     for ccy_pair, lot_size in instruments:
-        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30')
+        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30', output_result=False)
         back_tester.lot_size = lot_size
         print(f"{'*' * 30} {ccy_pair} {'*' * 30}")
         back_tester.print_stats(test_orders)
