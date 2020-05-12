@@ -1,6 +1,6 @@
 from datetime import datetime
+from functools import partial
 
-import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -23,13 +23,14 @@ from src.order_utils.order import Order, OrderStatus, OrderSide
 #       4. TP 3 * ATR
 
 
-def signal(df, short_win, long_win):
-    conditions = [
-        (df[f'smma_{short_win}'] > df[f'smma_{long_win}']) & (df['open'] < df[f'smma_{short_win}']) & (df[f'smma_{short_win}'] < df['close']),
-        (df[f'smma_{short_win}'] < df[f'smma_{long_win}']) & (df['open'] > df[f'smma_{short_win}']) & (df[f'smma_{short_win}'] > df['close']),
-    ]
-    choices = [1, -1]
-    return np.select(conditions, choices, default=0)
+def signal(short_win, long_win, row):
+    if row[f'smma_{long_win}'] < row[f'smma_{short_win}'] < row['close'] and row['open'] < row[f'smma_{short_win}']:
+        return 1
+
+    if row[f'smma_{long_win}'] > row[f'smma_{short_win}'] > row['close'] and row['open'] > row[f'smma_{short_win}']:
+        return -1
+
+    return 0
 
 
 def plot(df):
@@ -51,7 +52,7 @@ def sample_data(instrument: str, start: datetime, end: datetime, short_window: i
     price_feed[f'smma_{short_window}'] = TA.SMMA(price_feed, period=short_window, adjust=False)
     price_feed[f'smma_{long_window}'] = TA.SMMA(price_feed, period=long_window, adjust=False)
     price_feed['atr'] = TA.ATR(price_feed[['high', 'low', 'close']])
-    price_feed['signal'] = signal(price_feed[['open', 'close', f'smma_{short_window}', f'smma_{long_window}']], short_window, long_window)
+    price_feed['signal'] = price_feed.apply(partial(signal, short_window, long_window), axis=1)
     return price_feed
 
 
@@ -82,8 +83,8 @@ def create_orders(ohlc: pd.DataFrame, sl_multiplier: float, tp_multiplier: float
 
 if __name__ == '__main__':
     dfs = []
-    instruments = [('XAU_USD', 100), ('GBP_USD', 100000), ('EUR_USD', 100000), ('GBP_AUD', 100000),
-                   ('USD_JPY', 1000), ('AUD_USD', 100000), ('USD_SGD', 100000)]
+    instruments = [('XAU_USD', 100), ('GBP_USD', 10000), ('EUR_USD', 10000), ('GBP_AUD', 10000),
+                   ('USD_JPY', 1000), ('AUD_USD', 10000), ('USD_SGD', 10000)]
     back_tester = BackTester(strategy='MA with ATR exit')
     for instrument, lot_size in instruments:
         df = sample_data(instrument=instrument, start=datetime(2005, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
