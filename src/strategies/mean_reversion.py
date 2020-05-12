@@ -17,12 +17,12 @@ Rules:
         4. Maximum 4 orders allowed for each long or short direction. Do not want to against the trend
 
     SL:
-        long: entry - 20 days ATR
-        Short: entry + 20 days ATR
+        long: entry - 14 days ATR
+        Short: entry + 14 days ATR
 
     TP:
-        Long: entry + 20 days ATR
-        Short: entry - 20 days ATR
+        Long: entry + 14 days ATR
+        Short: entry - 14 days ATR
 
     Position Size:
         %2 risk
@@ -81,9 +81,9 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
     """
     price_df = pd.read_csv(f'c:/temp/{instrument.lower()}_h1_enrich.csv')
     '''
-         #   Column        Non-Null Count  Dtype  
-        ---  ------        --------------  -----  
-         0   time          65770 non-null  object 
+         #   Column        Non-Null Count  Dtype
+        ---  ------        --------------  -----
+         0   time          65770 non-null  object
          1   open          65770 non-null  float64
          2   high          65770 non-null  float64
          3   low           65770 non-null  float64
