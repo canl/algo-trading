@@ -81,9 +81,11 @@ def get_risk_pct(trans):
         last 4 trades are [win, win, lost, lost]
         risk pct 1%
     :type trans: list of transactions
+        [{'id': '574', 'pl': '-312.0975'}, {'id': '580', 'pl': '367.7076'}, {'id': '588', 'pl': '-310.7640'}]
     :return: float
     """
     last_4_trans = trans[:4]
+    logging.info(f"last 4 transactions:\n{last_4_trans}")
     if last_4_trans:
         last_4_trans.reverse()
         for idx, tran in enumerate(last_4_trans):
