@@ -6,7 +6,7 @@ import pandas as pd
 from src.common import api_request, transform
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
-from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType
+from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType, get_trans
 from src.position_calculator import pos_size
 
 # Rules:
@@ -72,6 +72,39 @@ def send_alert(last_high, last_low, diff, position_size, adj, long_tp, short_tp,
     notify(f"Trading instructions on {datetime.today().strftime('%Y-%m-%d')}", css + html)
 
 
+def get_risk_pct(trans):
+    """
+    Follow 1, 3, 2, 4 stakes sequence
+    for example:
+        last 4 trades are [win, win, lost, win]
+        risk pct 3%
+        last 4 trades are [win, win, lost, lost]
+        risk pct 1%
+    :type trans: list of transactions
+    :return: float
+    """
+    last_4_trans = trans[:4]
+    if last_4_trans:
+        last_4_trans.reverse()
+        for idx, tran in enumerate(last_4_trans):
+            if tran.get('pl') < 0:
+                if idx == 0:
+                    return 0.01
+                elif idx == 1:
+                    return 0.03
+                elif idx == 2:
+                    return 0.02
+                elif idx == 3:
+                    return 0.04
+        if len(last_4_trans) == 1:
+            return 0.03
+        elif len(last_4_trans) == 2:
+            return 0.02
+        elif len(last_4_trans) == 3:
+            return 0.04
+    return 0.01
+
+
 def run(live_run=False):
     if datetime.today().weekday() in (5, 6):
         logging.info("Do not run over the weekend!")
@@ -108,8 +141,11 @@ def run(live_run=False):
 
     if live_run:
         cancel_pending_orders()
-        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=long_tp, sl=last_low)
-        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=short_tp, sl=last_high)
+        trans = get_trans(100)
+        risk_pct = get_risk_pct(trans)
+        logging.info(f'Risk percent is {risk_pct}')
+        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * risk_pct, price=last_high, tp=long_tp, sl=last_low)
+        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * risk_pct, price=last_low, tp=short_tp, sl=last_high)
     else:
         logging.info('Dry run only for testing.')
 

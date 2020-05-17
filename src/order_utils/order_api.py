@@ -1,7 +1,7 @@
 import json
 import logging
 
-import oandapyV20.endpoints.orders as orders
+from oandapyV20.endpoints import orders, positions, trades, transactions
 from oandapyV20.contrib.requests import MITOrderRequest, TakeProfitDetails, StopLossDetails
 from oandapyV20.exceptions import V20Error
 
@@ -85,10 +85,52 @@ def get_pending_orders():
         return rv.get('orders')
 
 
+def get_positions():
+    r = positions.PositionList(account.mt4)
+    try:
+        rv = api.request(r)
+    except V20Error as err:
+        logging.error(r.status_code, err)
+    else:
+        logging.info(json.dumps(rv, indent=2))
+        return rv.get('positions')
+
+
+def get_trades():
+    r = trades.TradesList(account.mt4)
+    try:
+        rv = api.request(r)
+    except V20Error as err:
+        logging.error(r.status_code, err)
+    else:
+        logging.info(json.dumps(rv, indent=2))
+        return rv.get('trades')
+
+
+def get_trans(trans_size=100):
+    last_trans_id = int(api.request(transactions.TransactionList(account.mt4)).get('lastTransactionID'))
+    since_id = last_trans_id - trans_size if last_trans_id - trans_size > 0 else 0
+    params = {
+        "id": since_id
+    }
+    r = transactions.TransactionsSinceID(account.mt4, params)
+    try:
+        rv = api.request(r)
+    except V20Error as err:
+        logging.error(r.status_code, err)
+    else:
+        logging.info(json.dumps(rv, indent=2))
+        return rv.get('transactions')
+
+
 if __name__ == "__main__":
-    pending_orders = get_pending_orders()
-    if pending_orders:
-        cancel_order(pending_orders[0].get('id'))
+    trans = get_trans(100)
+    print(trans)
+    trans = [{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000']
+    print(trans)
+    # pending_orders = get_pending_orders()
+    # if pending_orders:
+    #     cancel_order(pending_orders[0].get('id'))
 
     # price = 1.3050
     # TAKE_PROFIT = 1.31
