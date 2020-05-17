@@ -153,7 +153,7 @@ if __name__ == '__main__':
         ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('XAU_USD', 1), ('USD_JPY', 100)
     ]
     dfs = []
-    back_tester = BackTester(strategy='mean reversion ')
+    back_tester = BackTester(strategy='Mean Reversion')
     for ccy_pair, lot_size in instruments:
         test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30', output_result=False)
         back_tester.lot_size = lot_size

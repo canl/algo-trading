@@ -67,6 +67,10 @@ class Order(object):
     def is_filled(self):
         return self.status == OrderStatus.FILLED
 
+    @property
+    def is_cancelled(self):
+        return self.status == OrderStatus.CANCELLED
+
     def fill(self, fill_time, filled_price=None):
         if filled_price:
             self.entry = filled_price
