@@ -144,7 +144,7 @@ def run(live_run=False):
     if live_run:
         cancel_pending_orders()
         trans = get_trans(100)
-        risk_pct = get_risk_pct(trans)
+        risk_pct = get_risk_pct(trans=[{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000'])
         logging.info(f'Risk percent is {risk_pct}')
         placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * risk_pct, price=last_high, tp=long_tp, sl=last_low)
         placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * risk_pct, price=last_low, tp=short_tp, sl=last_high)

@@ -124,10 +124,11 @@ def get_trans(trans_size=100):
 
 
 if __name__ == "__main__":
-    trans = get_trans(100)
-    print(trans)
-    trans = [{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000']
-    print(trans)
+    pass
+    # trans = get_trans(100)
+    # trans = [{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000']
+    # print(trans)
+
     # pending_orders = get_pending_orders()
     # if pending_orders:
     #     cancel_order(pending_orders[0].get('id'))
