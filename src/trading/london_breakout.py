@@ -84,7 +84,7 @@ def get_risk_pct(trans):
         [{'id': '574', 'pl': '-312.0975'}, {'id': '580', 'pl': '367.7076'}, {'id': '588', 'pl': '-310.7640'}]
     :return: float
     """
-    last_4_trans = trans[:4]
+    last_4_trans = trans[-4:]
     logging.info(f"last 4 transactions:\n{last_4_trans}")
     if last_4_trans:
         last_4_trans.reverse()
@@ -142,12 +142,15 @@ def run(live_run=False):
     send_alert(last_high, last_low, diff, position_size, 5, long_tp, short_tp, trend)
 
     if live_run:
-        cancel_pending_orders()
-        trans = get_trans(100)
-        risk_pct = get_risk_pct(trans=[{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000'])
-        logging.info(f'Risk percent is {risk_pct}')
-        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * risk_pct, price=last_high, tp=long_tp, sl=last_low)
-        placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * risk_pct, price=last_low, tp=short_tp, sl=last_high)
+        try:
+            cancel_pending_orders()
+            trans = get_trans(100)
+            risk_pct = get_risk_pct(trans=[{'id': t.get('id'), 'pl': float(t.get('pl'))} for t in trans if t.get('pl') and t.get('pl') != '0.0000'])
+            logging.info(f'Risk percent is {risk_pct}')
+            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * risk_pct, price=last_high, tp=long_tp, sl=last_low)
+            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * risk_pct, price=last_low, tp=short_tp, sl=last_high)
+        except Exception as ex:
+            logging.error(f"Failed to place order with error:\n{ex}")
     else:
         logging.info('Dry run only for testing.')
 

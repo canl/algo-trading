@@ -14,6 +14,7 @@ class TestLondonBreakout(TestCase):
             (0.03, [{'id': 1, 'pl': 100}, {'id': 2, 'pl': 100}, {'id': 3, 'pl': -100}, {'id': 4, 'pl': 100}]),
             (0.02, [{'id': 1, 'pl': 100}, {'id': 2, 'pl': -100}, {'id': 3, 'pl': 100}, {'id': 4, 'pl': 100}]),
             (0.01, [{'id': 1, 'pl': 100}, {'id': 2, 'pl': 100}, {'id': 3, 'pl': 100}, {'id': 4, 'pl': 100}]),
+            (0.03, [{'id': 1, 'pl': 100}, {'id': 2, 'pl': 100}, {'id': 3, 'pl': 100}, {'id': 4, 'pl': -100}, {'id': 4, 'pl': 100}]),
         ]
         for expect, trans in test_cases:
             self.assertEqual(expect, get_risk_pct(trans))
