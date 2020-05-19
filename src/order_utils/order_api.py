@@ -119,7 +119,7 @@ def get_trans(trans_size=100):
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
-        logging.info(json.dumps(rv, indent=2))
+        logging.debug(json.dumps(rv, indent=2))
         return rv.get('transactions')
 
 
