@@ -64,7 +64,7 @@ def enrich(pd_d, ema_period, row):
 if __name__ == '__main__':
     popular_pairs = (
         'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
-        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF'
+        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
     )
     for inst in popular_pairs:
         output_feeds(instrument=inst, st=datetime(2005, 1, 1), et=datetime(2020, 4, 30), short_win=20, long_win=10, ema_period=55, save_dir='c:/temp')

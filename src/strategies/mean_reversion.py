@@ -150,7 +150,7 @@ def output_csv(instrument: str, price_feed: pd.DataFrame, orders: list):
 if __name__ == '__main__':
     instruments = [
         ('EUR_USD', 10000), ('USD_CHF', 10000), ('USD_CAD', 10000), ('EUR_GBP', 10000), ('USD_SGD', 10000),
-        ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('XAU_USD', 1), ('USD_JPY', 100)
+        ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('USD_JPY', 100), ('XAU_USD', 1), ('BCO_USD', 100)
     ]
     dfs = []
     back_tester = BackTester(strategy='Mean Reversion')
