@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 import pandas as pd
@@ -11,7 +12,7 @@ class TestBackTester(TestCase):
         pass
 
     def test_run(self):
-        df = pd.read_csv('sample_price.csv').set_index('time')
+        df = pd.read_csv(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sample_price.csv')).set_index('time')
         orders = create_dummy_orders(df)
         back_tester = BackTester()
         back_tester.run(df, orders)
