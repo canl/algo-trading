@@ -13,7 +13,7 @@ api = PRACTICE_ENV.api()
 logger.info('hello')
 
 params = {
-    "instruments": "EUR_USD,EUR_JPY"
+    "instruments": "EUR_USD,EUR_JPY,GBP_USD"
 }
 
 max_recs = 100
