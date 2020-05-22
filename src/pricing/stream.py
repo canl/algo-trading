@@ -18,11 +18,11 @@ params = {
 
 max_recs = 100
 r = pricing.PricingStream(accountID=account.mt4, params=params)
-rv = api.request(r)
 
-# print(r.response)
-maxrecs = 100
-for tick in rv:
-    print(json.dumps(r, indent=4), ",")
-    if maxrecs == 0:
+maxrecs = 10
+n = 0
+for ticks in api.request(r):
+    print(json.dumps(ticks, indent=4), ",")
+    n += 1
+    if n >= maxrecs:
         r.terminate("maxrecs records received")
