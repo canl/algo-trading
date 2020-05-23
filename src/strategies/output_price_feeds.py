@@ -42,13 +42,13 @@ def output_feeds(instrument: str, st: datetime, et: datetime, short_win: int, lo
 
     pd_d.to_csv(f'{save_dir}/{instrument.lower()}_d.csv')
 
-    pd_h1 = pd.read_csv(f'{save_dir}/{instrument.lower()}_h1.csv')
+    pd_h1.reset_index(level=0, inplace=True)
+    pd_merged = pd_h1.apply(partial(enrich, pd_d, ema_period), axis=1).set_index('time')
 
-    pd_h1 = pd_h1.apply(partial(enrich, pd_d, ema_period), axis=1).set_index('time')
-    logger.info(pd_h1.info())
-    pd_h1.to_csv(f"{save_dir}/{instrument.lower()}_h1_enrich.csv")
+    logger.info(pd_merged.info())
+    pd_merged.to_csv(f"{save_dir}/{instrument.lower()}_h1_enrich.csv")
     logger.info(f'output feeds complete for [{instrument}]!')
-    return pd_h1
+    return pd_merged
 
 
 def enrich(pd_d, ema_period, row):
