@@ -1,3 +1,4 @@
+![Python package](https://github.com/canl/algo-trading/workflows/Python%20package/badge.svg?branch=master)
 # algo-trading
 Financial Analysis and Algorithmic Trading Strategies in Python
 
