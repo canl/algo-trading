@@ -17,8 +17,8 @@ class TestCommon(TestCase):
             (500 * 24 * 60 / 5, 'M5'),
             (500 * 24 * 60 / 10, 'M10'),
         ]
-        start = datetime.now() - timedelta(days=no_of_days)
-        end = datetime.now()
+        end = datetime(2020, 3, 31, 21, 0, 0)
+        start = datetime(2020, 3, 31, 21, 0, 0) - timedelta(days=no_of_days)
         for expect, granularity in test_cases:
             self.assertEqual(expect, get_candlesticks(start, end, granularity))
 
