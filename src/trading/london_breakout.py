@@ -147,8 +147,10 @@ def run(live_run=False):
             trans = get_trans(100)
             risk_pct = get_risk_pct(trans=[{'id': t.get('id'), 'pl': float(t.get('pl'))} for t in trans if t.get('pl') and t.get('pl') != '0.0000'])
             logging.info(f'Risk percent is {risk_pct}')
-            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * risk_pct, price=last_high, tp=long_tp, sl=last_low)
-            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * risk_pct, price=last_low, tp=short_tp, sl=last_high)
+            position_size = pos_size(account_balance=10000, risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
+            logging.info(f'Position size is {position_size}')
+            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=100000 * position_size, price=last_high, tp=long_tp, sl=last_low)
+            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=100000 * position_size, price=last_low, tp=short_tp, sl=last_high)
         except Exception as ex:
             logging.error(f"Failed to place order with error:\n{ex}")
     else:
