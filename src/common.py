@@ -7,10 +7,9 @@ import oandapyV20.endpoints.accounts as v20accounts
 import oandapyV20.endpoints.instruments as v20instruments
 from dateutil import parser
 
-from src.env import PRACTICE_ENV
-from src.env import LIVE_ENV
+from src.env import RUNNING_ENV
 
-env = PRACTICE_ENV
+env = RUNNING_ENV
 OANDA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 api = env.api()

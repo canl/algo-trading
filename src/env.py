@@ -1,3 +1,4 @@
+import logging
 import configparser
 from collections import namedtuple
 import os
@@ -5,6 +6,8 @@ import os
 from oandapyV20 import API
 
 Account = namedtuple('account', 'primary mt4')
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Env(object):
@@ -13,6 +16,7 @@ class Env(object):
     """
 
     def __init__(self, env: str):
+        logger.info(f"Running in {env} environment!")
         self.env = env
         self.config = configparser.ConfigParser()
         self.config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf', f'oanda-{self.env}.cfg'))
@@ -29,11 +33,8 @@ class Env(object):
         return f'Current in {self.env} environment'
 
 
-PRACTICE_ENV = Env('practice')
-LIVE_ENV = Env('live')
+RUNNING_ENV = Env('practice')
 
 if __name__ == '__main__':
-    print(PRACTICE_ENV)
-    print(PRACTICE_ENV.account())
-    print(LIVE_ENV)
-    print(LIVE_ENV.account())
+    print(RUNNING_ENV)
+    print(RUNNING_ENV.account())

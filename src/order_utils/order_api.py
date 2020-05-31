@@ -5,10 +5,9 @@ from oandapyV20.endpoints import orders, positions, trades, transactions
 from oandapyV20.contrib.requests import MITOrderRequest, TakeProfitDetails, StopLossDetails
 from oandapyV20.exceptions import V20Error
 
-from src.env import PRACTICE_ENV
-from src.env import LIVE_ENV
+from src.env import RUNNING_ENV
 
-env = PRACTICE_ENV
+env = RUNNING_ENV
 
 api = env.api()
 account = env.account()

@@ -6,11 +6,10 @@ from oandapyV20 import V20Error
 from oandapyV20.endpoints.pricing import PricingStream
 from oandapyV20.exceptions import StreamTerminated
 
-from src.env import PRACTICE_ENV
-from src.env import LIVE_ENV
+from src.env import RUNNING_ENV
 
 logger = logging.getLogger(__name__)
-env = PRACTICE_ENV
+env = RUNNING_ENV
 account = env.account()
 api = env.api()
 
