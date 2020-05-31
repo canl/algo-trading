@@ -7,11 +7,12 @@ from oandapyV20.endpoints.pricing import PricingStream
 from oandapyV20.exceptions import StreamTerminated
 
 from src.env import PRACTICE_ENV
+from src.env import LIVE_ENV
 
 logger = logging.getLogger(__name__)
-account = PRACTICE_ENV.account()
 env = PRACTICE_ENV
-api = PRACTICE_ENV.api()
+account = env.account()
+api = env.api()
 
 
 class StreamingPrices:

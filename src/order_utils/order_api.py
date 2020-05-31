@@ -6,11 +6,13 @@ from oandapyV20.contrib.requests import MITOrderRequest, TakeProfitDetails, Stop
 from oandapyV20.exceptions import V20Error
 
 from src.env import PRACTICE_ENV
+from src.env import LIVE_ENV
 
-logging.basicConfig(level=logging.DEBUG)
 env = PRACTICE_ENV
-api = PRACTICE_ENV.api()
-account = PRACTICE_ENV.account()
+
+api = env.api()
+account = env.account()
+logging.basicConfig(level=logging.DEBUG)
 
 
 class OrderType:
@@ -128,12 +130,7 @@ if __name__ == "__main__":
     # trans = get_trans(100)
     # trans = [{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000']
     # print(trans)
-
+    #
     # pending_orders = get_pending_orders()
     # if pending_orders:
     #     cancel_order(pending_orders[0].get('id'))
-
-    # price = 1.3050
-    # TAKE_PROFIT = 1.31
-    # STOP_LOSS = 1.3
-    # placing_order(instrument='GBP_USD', side='buy', units=10000, price=price, tp=TAKE_PROFIT, sl=STOP_LOSS)

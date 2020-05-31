@@ -8,6 +8,7 @@ import oandapyV20.endpoints.instruments as v20instruments
 from dateutil import parser
 
 from src.env import PRACTICE_ENV
+from src.env import LIVE_ENV
 
 env = PRACTICE_ENV
 OANDA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'

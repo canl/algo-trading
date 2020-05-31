@@ -30,8 +30,10 @@ class Env(object):
 
 
 PRACTICE_ENV = Env('practice')
+LIVE_ENV = Env('live')
 
 if __name__ == '__main__':
-    PRACTICE_ENV = Env('practice')
     print(PRACTICE_ENV)
     print(PRACTICE_ENV.account())
+    print(LIVE_ENV)
+    print(LIVE_ENV.account())
