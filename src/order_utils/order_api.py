@@ -1,8 +1,8 @@
 import json
 import logging
 
+from oandapyV20.contrib.requests import TakeProfitDetails, StopLossDetails, StopOrderRequest
 from oandapyV20.endpoints import orders, positions, trades, transactions
-from oandapyV20.contrib.requests import MITOrderRequest, TakeProfitDetails, StopLossDetails
 from oandapyV20.exceptions import V20Error
 
 from src.env import RUNNING_ENV
@@ -45,8 +45,8 @@ def placing_order(order_type, instrument, side, units, price, tp, sl):
     :param sl: stop loss
     :return:
     """
-    if order_type == OrderType.MARKET_IF_TOUCHED:
-        order_request = MITOrderRequest(
+    if order_type == OrderType.STOP:
+        order_request = StopOrderRequest(
             instrument=instrument,
             units=units if side == 'buy' else units * -1,
             price=price,
@@ -97,8 +97,8 @@ def get_positions():
         return rv.get('positions')
 
 
-def get_trades():
-    r = trades.TradesList(account.mt4)
+def get_open_trades():
+    r = trades.OpenTrades(account.mt4)
     try:
         rv = api.request(r)
     except V20Error as err:
@@ -124,11 +124,27 @@ def get_trans(trans_size=100):
         return rv.get('transactions')
 
 
+def get_trades(instruments, return_size=100):
+    params = {
+        "instrument": ",".join(instruments),
+        "state": "ALL"
+    }
+    r = trades.TradesList(account.mt4, params=params)
+    try:
+        rv = api.request(r)
+    except V20Error as err:
+        logging.error(r.status_code, err)
+    else:
+        logging.info(json.dumps(rv, indent=2))
+        res = rv.get('trades')[:return_size]
+        return sorted(res, key=lambda x: x['id'])
+
+
 if __name__ == "__main__":
-    pass
-    # trans = get_trans(100)
-    # trans = [{'id': t.get('id'), 'pl': t.get('pl')} for t in trans if t.get('pl') and t.get('pl') != '0.0000']
-    # print(trans)
+    # pass
+    trans = get_trades(["GBP_USD"], 4)
+    trans = [{'id': t.get('id'), 'sate': t.get('state'), 'pl': t.get('realizedPL')} for t in trans]
+    print(trans)
     #
     # pending_orders = get_pending_orders()
     # if pending_orders:

@@ -1,12 +1,13 @@
 import argparse
 import logging
 from datetime import datetime
+
 import pandas as pd
 
 from src.common import api_request, transform
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
-from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType, get_trans
+from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType, get_trades
 from src.position_calculator import pos_size
 
 # Rules:
@@ -34,7 +35,7 @@ def cancel_pending_orders():
     if pending_orders:
         for o in pending_orders:
             # We do not want to cancel TAKE_PROFIT and STOP_LOSS pending orders
-            if o.get('type') == 'MARKET_IF_TOUCHED':
+            if o.get('type') not in ('TAKE_PROFIT', 'STOP_LOSS'):
                 cancel_order(o.get('id'))
 
 
@@ -72,7 +73,7 @@ def send_alert(last_high, last_low, diff, position_size, adj, long_tp, short_tp,
     notify(f"Trading instructions on {datetime.today().strftime('%Y-%m-%d')}", css + html)
 
 
-def get_risk_pct(trans):
+def get_risk_pct(trades):
     """
     Follow 1, 3, 2, 4 stakes sequence
     for example:
@@ -80,15 +81,21 @@ def get_risk_pct(trans):
         risk pct 3%
         last 4 trades are [win, win, lost, lost]
         risk pct 1%
-    :type trans: list of transactions
-        [{'id': '574', 'pl': '-312.0975'}, {'id': '580', 'pl': '367.7076'}, {'id': '588', 'pl': '-310.7640'}]
+    :type trades: list of transactions in reversed order
+        [
+            {'id': '572', 'state': 'CLOSED', 'realized_pl': '-112.0975'},
+            {'id': '573', 'state': 'CLOSED', 'realized_pl': '-212.0975'},
+            {'id': '574', 'state': 'OPEN', 'realized_pl': '0.0000'},
+        ]
     :return: float
     """
-    last_4_trans = trans[-4:]
-    logging.info(f"last 4 transactions:\n{last_4_trans}")
-    if last_4_trans:
-        last_4_trans.reverse()
-        for idx, tran in enumerate(last_4_trans):
+    if any(t.get('state') == 'OPEN' for t in trades):
+        return 0.01
+    last_4_trades = trades[-4:]
+    logging.info(f"last 4 transactions:\n{last_4_trades}")
+    if last_4_trades:
+        last_4_trades.reverse()
+        for idx, tran in enumerate(last_4_trades):
             if tran.get('pl') < 0:
                 if idx == 0:
                     return 0.01
@@ -98,11 +105,11 @@ def get_risk_pct(trans):
                     return 0.02
                 elif idx == 3:
                     return 0.04
-        if len(last_4_trans) == 1:
+        if len(last_4_trades) == 1:
             return 0.03
-        elif len(last_4_trans) == 2:
+        elif len(last_4_trades) == 2:
             return 0.02
-        elif len(last_4_trans) == 3:
+        elif len(last_4_trades) == 3:
             return 0.04
     return 0.01
 
@@ -144,15 +151,15 @@ def run(live_run=False):
     if live_run:
         try:
             cancel_pending_orders()
-            trans = get_trans(100)
-            risk_pct = get_risk_pct(trans=[{'id': t.get('id'), 'pl': float(t.get('pl'))} for t in trans if t.get('pl') and t.get('pl') != '0.0000'])
+            hist_trades = get_trades(instruments=["GBP_USD"])
+            risk_pct = get_risk_pct([{'id': t.get('id'), 'sate': t.get('state'), 'realised_pl': t.get('realizedPL')} for t in hist_trades])
             # Risk pct is from 1% to 4%
             logging.info(f'Risk percent is {risk_pct}')
             position_size = pos_size(account_balance=1000, risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
             logging.info(f'Position size is {position_size}')
             one_lot = 100000
-            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='buy', units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
-            placing_order(order_type=OrderType.MARKET_IF_TOUCHED, instrument='GBP_USD', side='sell', units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
+            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side='buy', units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
+            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side='sell', units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
         except Exception as ex:
             logging.error(f"Failed to place order with error:\n{ex}")
     else:
