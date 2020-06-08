@@ -96,7 +96,7 @@ def get_risk_pct(trades):
     if last_4_trades:
         last_4_trades.reverse()
         for idx, tran in enumerate(last_4_trades):
-            if tran.get('pl') < 0:
+            if tran.get('realized_pl') < 0:
                 if idx == 0:
                     return 0.01
                 elif idx == 1:
@@ -152,7 +152,7 @@ def run(live_run=False):
         try:
             cancel_pending_orders()
             hist_trades = get_trades(instruments=["GBP_USD"])
-            risk_pct = get_risk_pct([{'id': t.get('id'), 'sate': t.get('state'), 'realised_pl': t.get('realizedPL')} for t in hist_trades])
+            risk_pct = get_risk_pct([{'id': t.get('id'), 'sate': t.get('state'), 'realized_pl': float(t.get('realizedPL'))} for t in hist_trades])
             # Risk pct is from 1% to 4%
             logging.info(f'Risk percent is {risk_pct}')
             position_size = pos_size(account_balance=1000, risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
