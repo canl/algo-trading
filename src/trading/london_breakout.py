@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.common import api_request, transform
+from src.env import RUNNING_ENV
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
 from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType, get_trades
@@ -168,6 +169,9 @@ def run(live_run=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="London Breakout Strategy")
+    parser.add_argument('--env', action="store", dest="env", default='practice')
     parser.add_argument("--liveRun", help="Flag to indicate dry or live run", action='store_true', default=False)
     args = parser.parse_args()
+    if args.env == 'live':
+        RUNNING_ENV.load_config('live')
     run(args.liveRun)

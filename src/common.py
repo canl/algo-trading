@@ -9,11 +9,8 @@ from dateutil import parser
 
 from src.env import RUNNING_ENV
 
-env = RUNNING_ENV
 OANDA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
-api = env.api()
-account = env.account()
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +71,7 @@ def read_price_data(instrument, granularity, start=None, end=None, max_count=400
 def api_request(instrument, p):
     logger.info(f'Reading price data for {instrument}\n{p}')
     r = v20instruments.InstrumentsCandles(instrument=instrument, params=p)
-    resp = api.request(r)
+    resp = RUNNING_ENV.api.request(r)
     return resp
 
 
@@ -179,9 +176,9 @@ def build_params(granularity: str, start: datetime, end: datetime = None, max_co
 
 
 def get_account_info():
-    print(account.mt4)
-    r = v20accounts.AccountDetails(account.mt4)
-    resp = api.request(r)
+    print(RUNNING_ENV.account.mt4)
+    r = v20accounts.AccountDetails(RUNNING_ENV.account.mt4)
+    resp = RUNNING_ENV.api.request(r)
     return resp
 
 
@@ -217,8 +214,8 @@ def get_candlesticks(start, end, granularity):
 
 
 if __name__ == '__main__':
-    pass
-    # start = datetime.now() - timedelta(100)
-    # to = datetime.now() - timedelta(1)
-    # price_df = read_price_df(instrument='EUR_USD', granularity='H4', start=start, end=to, max_count=20)
-    # print(price_df)
+    # pass
+    start = datetime.now() - timedelta(100)
+    to = datetime.now() - timedelta(1)
+    price_df = read_price_df(instrument='EUR_USD', granularity='H4', start=start, end=to, max_count=20)
+    print(price_df)

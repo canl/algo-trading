@@ -7,10 +7,6 @@ from oandapyV20.exceptions import V20Error
 
 from src.env import RUNNING_ENV
 
-env = RUNNING_ENV
-
-api = env.api()
-account = env.account()
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -57,10 +53,10 @@ def placing_order(order_type, instrument, side, units, price, tp, sl):
         raise NotImplemented(f'{order_type} is not supported yet')
 
     print(json.dumps(order_request.data, indent=4))
-    r = orders.OrderCreate(account.mt4, data=order_request.data)
+    r = orders.OrderCreate(RUNNING_ENV.account.mt4, data=order_request.data)
     try:
         # create the OrderCreate request
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
@@ -69,16 +65,17 @@ def placing_order(order_type, instrument, side, units, price, tp, sl):
 
 def cancel_order(order_id):
     logging.info(f'Cancelling order id: {order_id}')
-    r = orders.OrderCancel(accountID=account.mt4, orderID=order_id)
-    api.request(r)
+    r = orders.OrderCancel(accountID=RUNNING_ENV.account.mt4, orderID=order_id)
+    RUNNING_ENV.api.request(r)
     logging.info(r.response)
 
 
 def get_pending_orders():
-    r = orders.OrdersPending(account.mt4)
+    print("Running " + RUNNING_ENV.env)
+    r = orders.OrdersPending(RUNNING_ENV.account.mt4)
     try:
         # create the OrderCreate request
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
@@ -87,9 +84,9 @@ def get_pending_orders():
 
 
 def get_positions():
-    r = positions.PositionList(account.mt4)
+    r = positions.PositionList(RUNNING_ENV.account.mt4)
     try:
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
@@ -98,9 +95,9 @@ def get_positions():
 
 
 def get_open_trades():
-    r = trades.OpenTrades(account.mt4)
+    r = trades.OpenTrades(RUNNING_ENV.account.mt4)
     try:
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
@@ -109,14 +106,14 @@ def get_open_trades():
 
 
 def get_trans(trans_size=100):
-    last_trans_id = int(api.request(transactions.TransactionList(account.mt4)).get('lastTransactionID'))
+    last_trans_id = int(RUNNING_ENV.api.request(transactions.TransactionList(RUNNING_ENV.account.mt4)).get('lastTransactionID'))
     since_id = last_trans_id - trans_size if last_trans_id - trans_size > 0 else 0
     params = {
         "id": since_id
     }
-    r = transactions.TransactionsSinceID(account.mt4, params)
+    r = transactions.TransactionsSinceID(RUNNING_ENV.account.mt4, params)
     try:
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
@@ -129,9 +126,9 @@ def get_trades(instruments, return_size=100):
         "instrument": ",".join(instruments),
         "state": "ALL"
     }
-    r = trades.TradesList(account.mt4, params=params)
+    r = trades.TradesList(RUNNING_ENV.account.mt4, params=params)
     try:
-        rv = api.request(r)
+        rv = RUNNING_ENV.api.request(r)
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
