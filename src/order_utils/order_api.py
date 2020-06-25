@@ -132,8 +132,8 @@ def get_trades(instruments, return_size=100):
     except V20Error as err:
         logging.error(r.status_code, err)
     else:
-        logging.info(json.dumps(rv, indent=2))
         res = rv.get('trades')[:return_size]
+        logging.debug(json.dumps(res, indent=2))
         return sorted(res, key=lambda x: int(x['id']))
 
 
