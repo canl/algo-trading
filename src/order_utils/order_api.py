@@ -134,13 +134,13 @@ def get_trades(instruments, return_size=100):
     else:
         logging.info(json.dumps(rv, indent=2))
         res = rv.get('trades')[:return_size]
-        return sorted(res, key=lambda x: x['id'])
+        return sorted(res, key=lambda x: int(x['id']))
 
 
 if __name__ == "__main__":
     # pass
     trans = get_trades(["GBP_USD"], 4)
-    trans = [{'id': t.get('id'), 'sate': t.get('state'), 'pl': t.get('realizedPL')} for t in trans]
+    trans = [{'id': t.get('id'), 'state': t.get('state'), 'pl': t.get('realizedPL')} for t in trans]
     print(trans)
     #
     # pending_orders = get_pending_orders()
