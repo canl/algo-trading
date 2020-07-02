@@ -39,15 +39,6 @@ def output_feeds(instrument: str, short_win: int, long_win: int, ema_period: int
     return pd_d
 
 
-def run(save_dir):
-    popular_pairs = (
-        'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
-        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
-    )
-    for inst in popular_pairs:
-        output_feeds(instrument=inst, st=datetime(2019, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=save_dir)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Output daily price feeds to CSV")
     parser.add_argument('--env', action="store", dest="env", default='practice')
