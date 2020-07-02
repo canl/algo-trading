@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.common import read_price_df
+from src.env import RUNNING_ENV
 from src.finta.ta import TA
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def run(save_dir):
 
 
 if __name__ == '__main__':
+    RUNNING_ENV.load_config('live')
     parser = argparse.ArgumentParser(description="Output daily price feeds to CSV")
     parser.add_argument('--saveDir', action="store", dest="saveDir", default='c:/temp/prices')
     args = parser.parse_args()
