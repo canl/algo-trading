@@ -49,8 +49,17 @@ def run(save_dir):
 
 
 if __name__ == '__main__':
-    RUNNING_ENV.load_config('live')
     parser = argparse.ArgumentParser(description="Output daily price feeds to CSV")
+    parser.add_argument('--env', action="store", dest="env", default='practice')
     parser.add_argument('--saveDir', action="store", dest="saveDir", default='c:/temp/prices')
     args = parser.parse_args()
-    run(args.saveDir)
+    if args.env == 'live':
+        RUNNING_ENV.load_config('live')
+
+    instruments = (
+        'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
+        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
+    )
+    for inst in instruments:
+        # Output feeds from 2019
+        output_feeds(instrument=inst, st=datetime(2019, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=args.saveDir)
