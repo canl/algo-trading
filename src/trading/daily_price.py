@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def output_feeds(instrument: str, short_win: int, long_win: int, ema_period: int, save_dir: str, st: datetime, et: datetime = None) -> pd.DataFrame:
     """
-    Output ohlc price feeds to csv for strategy back testing
+    Output daily ohlc price feeds to csv
     :param instrument: ccy_pair
     :param st: start date
     :param et: end date
@@ -48,7 +48,7 @@ def run(save_dir):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="London Breakout Strategy")
+    parser = argparse.ArgumentParser(description="Output daily price feeds to CSV")
     parser.add_argument('--saveDir', action="store", dest="saveDir", default='c:/temp/prices')
     args = parser.parse_args()
     run(args.saveDir)
