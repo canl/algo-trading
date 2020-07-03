@@ -1,11 +1,12 @@
 import json
 import logging
-
-from oandapyV20.contrib.requests import TakeProfitDetails, StopLossDetails, StopOrderRequest
+from typing import Union
+from oandapyV20.contrib.requests import TakeProfitDetails, StopLossDetails, StopOrderRequest, LimitOrderRequest
 from oandapyV20.endpoints import orders, positions, trades, transactions
 from oandapyV20.exceptions import V20Error
 
 from src.env import RUNNING_ENV
+from src.order_utils.order import OrderSide
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -21,7 +22,7 @@ class OrderType:
     FIXED_PRICE = "fixed"
 
 
-def placing_order(order_type, instrument, side, units, price, tp, sl):
+def placing_order(order_type: str, instrument: str, side: str, units: Union[float, int], price: float, tp: float, sl: float):
     """
     Placing order
     :param order_type:
@@ -44,7 +45,15 @@ def placing_order(order_type, instrument, side, units, price, tp, sl):
     if order_type == OrderType.STOP:
         order_request = StopOrderRequest(
             instrument=instrument,
-            units=units if side == 'buy' else units * -1,
+            units=units * (1 if side == OrderSide.LONG else -1),
+            price=price,
+            takeProfitOnFill=TakeProfitDetails(price=tp).data,
+            stopLossOnFill=StopLossDetails(price=sl).data
+        )
+    elif order_type == OrderType.LIMIT:
+        order_request = LimitOrderRequest(
+            instrument=instrument,
+            units=units * (1 if side == OrderSide.LONG else -1),
             price=price,
             takeProfitOnFill=TakeProfitDetails(price=tp).data,
             stopLossOnFill=StopLossDetails(price=sl).data
@@ -142,6 +151,10 @@ if __name__ == "__main__":
     trans = get_trades(["GBP_USD"], 4)
     trans = [{'id': t.get('id'), 'state': t.get('state'), 'pl': t.get('realizedPL')} for t in trans]
     print(trans)
+
+    # placing_order(OrderType.LIMIT, 'GBP_USD', OrderSide.SHORT, 200.5, 1.20, 1.25, 1.15)
+    # RUNNING_ENV.load_config('live')
+    # print(get_pending_orders())
     #
     # pending_orders = get_pending_orders()
     # if pending_orders:

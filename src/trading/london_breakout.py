@@ -8,6 +8,7 @@ from src.common import api_request, transform
 from src.env import RUNNING_ENV
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
+from src.order_utils.order import OrderSide
 from src.order_utils.order_api import placing_order, get_pending_orders, cancel_order, OrderType, get_trades
 from src.position_calculator import pos_size
 
@@ -159,8 +160,8 @@ def run(live_run=False):
             position_size = pos_size(account_balance=1000, risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
             logging.info(f'Position size is {position_size}')
             one_lot = 100000
-            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side='buy', units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
-            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side='sell', units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
+            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side=OrderSide.LONG, units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
+            placing_order(order_type=OrderType.STOP, instrument='GBP_USD', side=OrderSide.SHORT, units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
         except Exception as ex:
             logging.error(f"Failed to place order with error:\n{ex}")
     else:
