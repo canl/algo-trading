@@ -1,11 +1,9 @@
-import logging
 import configparser
-from collections import namedtuple
+import logging
 import os
 
 from oandapyV20 import API
 
-Account = namedtuple('account', 'primary mt4')
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -14,6 +12,7 @@ class Env(object):
     """
     Manage environment for practice and live account
     """
+
     def __init__(self):
         self.config = configparser.ConfigParser()
         # Default to practice environment
@@ -24,11 +23,13 @@ class Env(object):
     def api(self):
         return API(environment=self.env, access_token=self.config['oanda']['access_token'])
 
-    @property
-    def account(self):
+    def get_account(self, name: str) -> str:
         # Oanda by default have 2 accounts: primary and mt4
         oanda_cfg = self.config['oanda']
-        return Account(primary=oanda_cfg['account_id_primary'], mt4=oanda_cfg['account_id_mt4'])
+        try:
+            return oanda_cfg[name]
+        except KeyError:
+            logger.fatal(f'Invalid account name: {name}')
 
     def load_config(self, env: str):
         logger.info(f"{'Switching' if self.config.has_section('oanda') else 'Initialize'} to {env} environment!")
@@ -43,7 +44,8 @@ RUNNING_ENV = Env()
 
 if __name__ == '__main__':
     print(RUNNING_ENV)
-    print(RUNNING_ENV.account)
+    print(RUNNING_ENV.get_account('mt4'))
+
     RUNNING_ENV.load_config('live')
-    print(RUNNING_ENV)
-    print(RUNNING_ENV.account)
+    print(RUNNING_ENV.get_account('primary'))
+    print(RUNNING_ENV.get_account('mt4'))

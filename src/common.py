@@ -175,9 +175,9 @@ def build_params(granularity: str, start: datetime, end: datetime = None, max_co
     return params
 
 
-def get_account_info():
-    print(RUNNING_ENV.account.mt4)
-    r = v20accounts.AccountDetails(RUNNING_ENV.account.mt4)
+def get_account_info(name):
+    print(RUNNING_ENV.get_account(name))
+    r = v20accounts.AccountDetails(RUNNING_ENV.get_account(name))
     resp = RUNNING_ENV.api.request(r)
     return resp
 
