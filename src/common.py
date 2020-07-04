@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
-import re
 import logging
+import re
+from datetime import datetime, timedelta
+
 import numpy as np
-import pandas as pd
-import oandapyV20.endpoints.accounts as v20accounts
 import oandapyV20.endpoints.instruments as v20instruments
+import pandas as pd
 from dateutil import parser
 
 from src.env import RUNNING_ENV
@@ -173,13 +173,6 @@ def build_params(granularity: str, start: datetime, end: datetime = None, max_co
         )
 
     return params
-
-
-def get_account_info(name):
-    print(RUNNING_ENV.get_account(name))
-    r = v20accounts.AccountDetails(RUNNING_ENV.get_account(name))
-    resp = RUNNING_ENV.api.request(r)
-    return resp
 
 
 def get_candlesticks(start, end, granularity):
