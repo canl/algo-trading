@@ -88,8 +88,8 @@ class MeanReversionTrader:
         atr = df.iloc[-1]['atr']
         logger.info(f"last high: {last_20_high}, last low: {last_20_low}, rsi: {rsi}, atr: {atr}")
 
-        buy_signal = float(event.ask) >= last_20_high and 30 <= rsi <= 70
-        sell_signal = float(event.bid) <= last_20_low and 30 <= rsi <= 70
+        buy_signal = float(event.ask) <= last_20_low and 30 <= rsi <= 70
+        sell_signal = float(event.bid) >= last_20_high and 30 <= rsi <= 70
 
         if buy_signal or sell_signal:
             side = OrderSide.LONG if buy_signal else OrderSide.SHORT
@@ -99,7 +99,7 @@ class MeanReversionTrader:
                     logger.warning(f"Exceeded maximum allowed order side: [{self.max_orders}]!")
                     return
                 try:
-                    self.place_order(event, side, last_20_high, last_20_low, atr)
+                    self.place_order(event.instrument, side, last_20_high, last_20_low, atr)
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
             else:
@@ -121,8 +121,7 @@ class MeanReversionTrader:
             o for o in open_trades if o.get('instrument') == instrument and (int(o.get('initialUnits')) > 0 if side == OrderSide.LONG else int(o.get('initialUnits')) < 0)
         ]
 
-    def place_order(self, event: TickEvent, side: str, last_20_high: float, last_20_low: float, atr: float):
-        instrument = event.instrument
+    def place_order(self, instrument: str, side: str, last_20_high: float, last_20_low: float, atr: float):
         logger.info(f"Placing [{side}] order for instrument: [{instrument}]")
         is_long = side == OrderSide.LONG
         entry = last_20_low - self.entry_adj if is_long else last_20_high + self.entry_adj
