@@ -156,7 +156,7 @@ if __name__ == '__main__':
     price_events = queue.Queue()
     t = MeanReversionTrader(events=price_events, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
 
-    instruments = ['GBP_USD', 'GBP_AUD', 'EUR_GBP', 'EUR_USD', 'USD_SGD', 'USD_CHF', 'AUD_USD']
+    instruments = ['GBP_USD', 'GBP_AUD', 'EUR_GBP', 'EUR_USD', 'USD_SGD', 'USD_CHF', 'AUD_USD', 'USD_CAD']
     spe = StreamPriceEvent(instruments, price_events)
     price_thread = threading.Thread(target=spe.start)
     price_thread.start()
