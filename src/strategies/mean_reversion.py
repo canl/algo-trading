@@ -111,15 +111,15 @@ def run(instrument: str, window: int, max_orders: int, entry_adj: float, tp_adj:
         atr = ohlc['day_atr']
         if ohlc['high'] == ohlc[f'last_{window}_high'] and len(open_short) < max_orders and 30 <= ohlc['day_rsi'] <= 70:
             # Place a short limit order
-            entry = ohlc['high']
+            entry = ohlc['high'] + entry_adj
             orders.append(
-                Order(order_date=ohlc['time'], side=OrderSide.SHORT, entry=entry + entry_adj, sl=entry + atr, tp=entry - atr - tp_adj, status=OrderStatus.PENDING)
+                Order(order_date=ohlc['time'], side=OrderSide.SHORT, entry=entry, sl=entry + atr, tp=entry - atr - tp_adj, status=OrderStatus.PENDING)
             )
         elif ohlc['low'] == ohlc[f'last_{window}_low'] and len(open_long) < max_orders and 30 <= ohlc['day_rsi'] <= 70:
             # Place a long limit order
-            entry = ohlc['low']
+            entry = ohlc['low'] - entry_adj
             orders.append(
-                Order(order_date=ohlc['time'], side=OrderSide.LONG, entry=entry - entry_adj, sl=entry - atr, tp=entry + atr + tp_adj, status=OrderStatus.PENDING)
+                Order(order_date=ohlc['time'], side=OrderSide.LONG, entry=entry, sl=entry - atr, tp=entry + atr + tp_adj, status=OrderStatus.PENDING)
             )
 
     if output_result:
