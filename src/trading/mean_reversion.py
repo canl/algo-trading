@@ -131,13 +131,14 @@ class MeanReversionTrader:
         now_utc = datetime.now(timezone.utc)
         expiry_time = (now_utc + timedelta(hours=self.expiry_hours)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         units = self.calculate_position_size(instrument=instrument, atr=atr)
-
-        self.om.place_limit_order(instrument=instrument, side=side, units=units, price=entry, tp=tp, sl=sl, expiry=expiry_time)
+        one_lot = 100000
+        self.om.place_limit_order(instrument=instrument, side=side, units=one_lot * units, price=entry, tp=tp, sl=sl, expiry=expiry_time)
         logger.info("Order successfully placed")
 
     def calculate_position_size(self, instrument, atr):
         nav = self.am.nav
-        sl_pips = atr * 10000
+        special_instruments = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
+        sl_pips = atr * (10000 if any(inst in instrument for inst in special_instruments) else 100)
         return pos_size(account_balance=nav, risk_pct=self.risk_pct, sl_pips=sl_pips, instrument=instrument, account_ccy='GBP')
 
     def exceed_maximum_orders(self, instrument: str, side: str) -> bool:
@@ -156,7 +157,10 @@ if __name__ == '__main__':
     price_events = queue.Queue()
     t = MeanReversionTrader(events=price_events, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
 
-    instruments = ['GBP_USD', 'GBP_AUD', 'EUR_GBP', 'EUR_USD', 'USD_SGD', 'USD_CHF', 'AUD_USD', 'USD_CAD']
+    instruments = [
+        'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
+        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
+    ]
     spe = StreamPriceEvent(instruments, price_events)
     price_thread = threading.Thread(target=spe.start)
     price_thread.start()

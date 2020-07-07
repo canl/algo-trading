@@ -149,13 +149,13 @@ def output_csv(instrument: str, price_feed: pd.DataFrame, orders: list):
 
 if __name__ == '__main__':
     instruments = [
-        ('EUR_USD', 10000), ('USD_CHF', 10000), ('USD_CAD', 10000), ('EUR_GBP', 10000), ('USD_SGD', 10000),
+        ('EUR_USD', 10000), ('USD_CHF', 10000), ('USD_CAD', 10000), ('EUR_GBP', 10000), ('USD_SGD', 10000), ('GBP_NZD', 10000),
         ('AUD_USD', 10000), ('GBP_AUD', 10000), ('GBP_USD', 10000), ('USD_JPY', 100), ('XAU_USD', 1), ('BCO_USD', 100)
     ]
     dfs = []
     back_tester = BackTester(strategy='Mean Reversion')
     for ccy_pair, lot_size in instruments:
-        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-04-30', output_result=False)
+        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-06-30', output_result=False)
         back_tester.lot_size = lot_size
         print(f"{'*' * 30} {ccy_pair} {'*' * 30}")
         back_tester.print_stats(test_orders)

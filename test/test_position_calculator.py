@@ -15,6 +15,7 @@ class TestCommon(TestCase):
             ('GBP', 'AUD_SGD'): 1.77757,
             ('GBP', 'XAU_USD'): 1.25,
             ('GBP', 'GBP_NZD'): 2.07264,
+            ('GBP', 'BCO_USD'): 1.25,
         }[x]
 
     def test_position_calculator(self):
@@ -25,7 +26,8 @@ class TestCommon(TestCase):
             ('EUR_JPY', 0.538),
             ('AUD_SGD', 0.711),
             ('XAU_USD', 0.005),
-            ('GBP_NZD', 0.8291)
+            ('GBP_NZD', 0.8291),
+            ('BCO_USD', 0.005)
         ]
 
         for instrument, expect in test_cases:
