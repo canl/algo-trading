@@ -2,6 +2,7 @@ import argparse
 import logging
 import queue
 import threading
+import time
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 
@@ -50,7 +51,8 @@ class MeanReversionTrader:
     """
 
     def __init__(self, events: queue.Queue, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
-                 entry_adj: float = 0.0005, expiry_hours: int = 3, risk_pct: float = 0.02, live_run: bool = False):
+                 entry_adj: float = 0.0005, expiry_hours: int = 3, risk_pct: float = 0.02,
+                 live_run: bool = False, heartbeat: int = 1):
 
         """
         Mean reversion auto trader
@@ -73,11 +75,20 @@ class MeanReversionTrader:
         self.om = OrderManager(account)
         self.am = AccountManager(account)
         self.live_run = live_run
+        self.heartbeat = heartbeat
 
     def run(self):
+        """
+            Carries out an infinite while loop that polls the
+            events queue and directs each event to either the
+            strategy component of the execution handler. The
+            loop will then pause for "heartbeat" seconds and
+            continue.
+        """
         while True:
             e = self.events.get()
             self.calculate_signals(event=e)
+            time.sleep(self.heartbeat)
 
     def calculate_signals(self, event: TickEvent):
         logger.info(f'Received event: {event}')
