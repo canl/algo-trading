@@ -136,7 +136,7 @@ class MeanReversionTrader:
                     logger.warning(f"Exceeded maximum allowed order side: [{self.max_orders}]!")
                     return
                 try:
-                    self.place_order(event.instrument, side, last_20_high, last_20_low, atr)
+                    self.place_order(event.instrument, side, event.bid, event.ask, atr)
                     self.cache[event.instrument][side] += 1
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
@@ -147,10 +147,10 @@ class MeanReversionTrader:
     def read_daily_price_feed(self, instrument):
         return pd.read_csv(f'{self.feeds_loc}/{instrument.lower()}_d.csv').set_index('time')
 
-    def place_order(self, instrument: str, side: str, last_20_high: float, last_20_low: float, atr: float):
+    def place_order(self, instrument: str, side: str, bid: float, ask: float, atr: float):
         logger.info(f"Placing [{side}] order for instrument: [{instrument}]")
         is_long = side == OrderSide.LONG
-        entry = last_20_low - self.entry_adj if is_long else last_20_high + self.entry_adj
+        entry = bid - self.entry_adj if is_long else ask + self.entry_adj
         sl = entry - atr if is_long else entry + atr
         tp = entry + atr if is_long else entry - atr
 
@@ -164,7 +164,7 @@ class MeanReversionTrader:
     def calculate_position_size(self, instrument, atr):
         nav = int(float(self.am.nav))
         special_instruments = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
-        sl_pips = atr * (10000 if any(inst in instrument for inst in special_instruments) else 100)
+        sl_pips = atr * (100 if any(inst in instrument for inst in special_instruments) else 10000)
         return pos_size(account_balance=nav, risk_pct=self.risk_pct, sl_pips=sl_pips, instrument=instrument, account_ccy='GBP')
 
     def exceed_maximum_orders(self, instrument: str, side: str) -> bool:
