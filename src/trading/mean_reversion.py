@@ -50,13 +50,14 @@ class MeanReversionTrader:
 
     """
 
-    def __init__(self, events: queue.Queue, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
+    def __init__(self, events: queue.Queue, instruments: list, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
                  entry_adj: float = 0.0005, expiry_hours: int = 3, risk_pct: float = 0.02,
                  live_run: bool = False, heartbeat: int = 1):
 
         """
         Mean reversion auto trader
         :param events: Tick price event queue
+        :param instruments: list of currency pairs
         :param feeds_loc: Location to read daily price feed
         :param max_orders: maximum order allowed for LONG or SHORT
         :param account: Oanda account name: primary or mt4
@@ -66,6 +67,7 @@ class MeanReversionTrader:
         :param live_run: live or dry run, default to false
         """
         self.events = events
+        self.instruments = instruments
         self.feeds_loc = feeds_loc
         self.max_orders = max_orders
         self.account_id = RUNNING_ENV.get_account(account)
@@ -76,6 +78,30 @@ class MeanReversionTrader:
         self.am = AccountManager(account)
         self.live_run = live_run
         self.heartbeat = heartbeat
+        # Order stats initialization
+        self.cache = self.initialize_cache()
+
+    def initialize_cache(self) -> dict:
+        logger.info("Initialize cache db ...")
+        matched_orders = self.om.get_open_trades()
+        pending_orders = self.om.get_pending_orders()
+
+        res = {}
+        for instrument in self.instruments:
+            matched_instruments = [o for o in matched_orders if o.get('instrument') == instrument]
+            pending_instruments = [o for o in pending_orders if o.get('instrument') == instrument]
+
+            matched_long = len([o for o in matched_instruments if int(float(o.get('initialUnits'))) > 0]) if matched_instruments else 0
+            matched_short = len([o for o in matched_instruments if int(float(o.get('initialUnits'))) < 0]) if matched_instruments else 0
+
+            pending_long = len([o for o in pending_instruments if int(float(o.get('units'))) > 0]) if pending_instruments else 0
+            pending_short = len([o for o in pending_instruments if int(float(o.get('units'))) < 0]) if pending_instruments else 0
+
+            res[instrument] = {
+                OrderSide.LONG: matched_long + pending_long, OrderSide.SHORT: matched_short + pending_short
+            }
+
+        return res
 
     def run(self):
         """
@@ -104,13 +130,14 @@ class MeanReversionTrader:
 
         if buy_signal or sell_signal:
             side = OrderSide.LONG if buy_signal else OrderSide.SHORT
-            logger.info(f"{side} signal detected!")
+            logger.info(f"{side} signal detected for instrument [{event.instrument}]!")
             if self.live_run:
                 if self.exceed_maximum_orders(instrument=event.instrument, side=side):
                     logger.warning(f"Exceeded maximum allowed order side: [{self.max_orders}]!")
                     return
                 try:
                     self.place_order(event.instrument, side, last_20_high, last_20_low, atr)
+                    self.cache[event.instrument][side] += 1
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
             else:
@@ -119,18 +146,6 @@ class MeanReversionTrader:
     @cache(seconds=3600)
     def read_daily_price_feed(self, instrument):
         return pd.read_csv(f'{self.feeds_loc}/{instrument.lower()}_d.csv').set_index('time')
-
-    def get_open_trades(self, instrument: str, side: str) -> list:
-        """
-        Retrieve open trades by currency pair and order side
-        :param instrument: OrderType
-        :param side: OrderSide
-        :return: list
-        """
-        open_trades = self.om.get_open_trades()
-        return [
-            o for o in open_trades if o.get('instrument') == instrument and (int(o.get('initialUnits')) > 0 if side == OrderSide.LONG else int(o.get('initialUnits')) < 0)
-        ]
 
     def place_order(self, instrument: str, side: str, last_20_high: float, last_20_low: float, atr: float):
         logger.info(f"Placing [{side}] order for instrument: [{instrument}]")
@@ -153,8 +168,7 @@ class MeanReversionTrader:
         return pos_size(account_balance=nav, risk_pct=self.risk_pct, sl_pips=sl_pips, instrument=instrument, account_ccy='GBP')
 
     def exceed_maximum_orders(self, instrument: str, side: str) -> bool:
-        opens = self.get_open_trades(instrument, side)
-        return len(opens) >= self.max_orders
+        return self.cache[instrument][side] >= self.max_orders
 
 
 if __name__ == '__main__':
@@ -166,13 +180,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     price_events = queue.Queue()
-    t = MeanReversionTrader(events=price_events, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
-
-    instruments = [
+    TRADED_INSTRUMENTS = [
         'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
         'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
     ]
-    spe = StreamPriceEvent(instruments, price_events)
+
+    t = MeanReversionTrader(events=price_events, instruments=TRADED_INSTRUMENTS, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
+    spe = StreamPriceEvent(TRADED_INSTRUMENTS, price_events)
     price_thread = threading.Thread(target=spe.start)
     price_thread.start()
 
