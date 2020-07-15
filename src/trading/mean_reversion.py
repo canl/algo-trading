@@ -136,7 +136,7 @@ class MeanReversionTrader:
                     logger.warning(f"Exceeded maximum allowed order side: [{self.max_orders}]!")
                     return
                 try:
-                    self.place_order(event.instrument, side, event.bid, event.ask, atr)
+                    self.place_order(event.instrument, side, float(event.bid), float(event.ask), atr)
                     self.cache[event.instrument][side] += 1
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
