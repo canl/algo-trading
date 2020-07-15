@@ -147,7 +147,7 @@ class MeanReversionTrader:
         logger.info("Order successfully placed")
 
     def calculate_position_size(self, instrument, atr):
-        nav = self.am.nav
+        nav = int(float(self.am.nav))
         special_instruments = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
         sl_pips = atr * (10000 if any(inst in instrument for inst in special_instruments) else 100)
         return pos_size(account_balance=nav, risk_pct=self.risk_pct, sl_pips=sl_pips, instrument=instrument, account_ccy='GBP')
