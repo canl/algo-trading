@@ -89,7 +89,7 @@ class MeanReversionTrader:
         res = {}
         for instrument in self.instruments:
             matched_instruments = [o for o in matched_orders if o.get('instrument') == instrument]
-            pending_instruments = [o for o in pending_orders if o.get('instrument') == instrument]
+            pending_instruments = [o for o in pending_orders if o.get('instrument') == instrument and o.get('type') not in ('TAKE_PROFIT', 'STOP_LOSS')]
 
             matched_long = len([o for o in matched_instruments if int(float(o.get('initialUnits'))) > 0]) if matched_instruments else 0
             matched_short = len([o for o in matched_instruments if int(float(o.get('initialUnits'))) < 0]) if matched_instruments else 0
