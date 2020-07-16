@@ -52,5 +52,5 @@ if __name__ == '__main__':
         'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
     )
     for inst in instruments:
-        # Output feeds from 2019
-        output_feeds(instrument=inst, st=datetime(2019, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=args.saveDir)
+        # Output feeds from 2020
+        output_feeds(instrument=inst, st=datetime(2020, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=args.saveDir)
