@@ -35,7 +35,7 @@ class MeanReversionTrader:
                 2) RSI between 30 to 70
                 3) with entry price as: 20 days high + 5pips adj
             3. Cancel the order if it cannot be filled in 3 hours
-            4. Maximum 4 orders allowed for each long or short direction. Do not want to against the trend
+            4. Maximum 4 orders allowed for each long or short direction. 10pips between orders (Do not want to against the trend)
 
         SL:
             long: entry - 14 days ATR
@@ -51,7 +51,7 @@ class MeanReversionTrader:
     """
 
     def __init__(self, events: queue.Queue, instruments: list, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
-                 entry_adj: float = 0.0005, expiry_hours: int = 3, risk_pct: float = 0.02,
+                 entry_adj: float = 0.0005, adj_btw_orders: float = 0.001, expiry_hours: int = 3, risk_pct: float = 0.02,
                  live_run: bool = False, heartbeat: int = 1):
 
         """
@@ -62,6 +62,7 @@ class MeanReversionTrader:
         :param max_orders: maximum order allowed for LONG or SHORT
         :param account: Oanda account name: primary or mt4
         :param entry_adj: entry adjustment, default to 5 pips
+        :param adj_btw_orders: entry adjustment between orders, default to 10 pips
         :param expiry_hours: expiry hours for GTD trades (Good Till Date)
         :param risk_pct: risk percentage for each trade
         :param live_run: live or dry run, default to false
@@ -72,6 +73,7 @@ class MeanReversionTrader:
         self.max_orders = max_orders
         self.account_id = RUNNING_ENV.get_account(account)
         self.entry_adj = entry_adj
+        self.adj_btw_orders = adj_btw_orders
         self.expiry_hours = expiry_hours
         self.risk_pct = risk_pct
         self.om = OrderManager(account)
@@ -98,7 +100,10 @@ class MeanReversionTrader:
             pending_short = len([o for o in pending_instruments if int(float(o.get('units'))) < 0]) if pending_instruments else 0
 
             res[instrument] = {
-                OrderSide.LONG: matched_long + pending_long, OrderSide.SHORT: matched_short + pending_short
+                OrderSide.LONG: matched_long + pending_long,
+                OrderSide.SHORT: matched_short + pending_short,
+                'last_buy': None,
+                'last_sell': None
             }
 
         return res
@@ -125,8 +130,13 @@ class MeanReversionTrader:
         atr = df.iloc[-1]['atr']
         logger.info(f"last high: {last_20_high}, last low: {last_20_low}, rsi: {rsi}, atr: {atr}")
 
-        buy_signal = float(event.ask) <= last_20_low and 30 <= rsi <= 70
-        sell_signal = float(event.bid) >= last_20_high and 30 <= rsi <= 70
+        last_buy = self.cache[event.instrument]['last_buy']
+        last_sell = self.cache[event.instrument]['last_sell']
+        buy_threshold = last_buy - self.adj_btw_orders if last_buy else last_20_low
+        sell_threshold = last_sell + self.adj_btw_orders if last_sell else last_20_high
+
+        buy_signal = float(event.ask) <= buy_threshold and 30 <= rsi <= 70
+        sell_signal = float(event.bid) >= sell_threshold and 30 <= rsi <= 70
 
         if buy_signal or sell_signal:
             side = OrderSide.LONG if buy_signal else OrderSide.SHORT
@@ -138,6 +148,10 @@ class MeanReversionTrader:
                 try:
                     self.place_order(event.instrument, side, float(event.bid), float(event.ask), atr)
                     self.cache[event.instrument][side] += 1
+                    if side == OrderSide.LONG:
+                        self.cache[event.instrument]['last_buy'] = event.bid
+                    else:
+                        self.cache[event.instrument]['last_sell'] = event.ask
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
             else:
