@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python package](https://github.com/canl/algo-trading/workflows/Python%20package/badge.svg?branch=master)
 # algo-trading
-Financial Analysis and Algorithmic Trading Strategies in Python
+Financial Analysis, Strategies Backtesting and Algorithmic Trading in Forex and Equities 
 
 **algo-trading** reads forex market data feeds from Oanda: https://developer.oanda.com/rest-live-v20/introduction/. 
 
