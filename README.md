@@ -8,7 +8,7 @@ Financial Analysis, Strategies Backtesting and Algorithmic Trading in Forex and 
 Python implementations of popular Algorithmic Trading Strategies, along with genetic algorithms for tuning parameters based on historical data.
 
 ## Dependencies
-Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, oandapyV20 ...
+Python 3.x, pandas, matplotlib, pyyaml, numpy, scipy, oandapyV20, flask ...
 
 See requirements.txt for full details.
 
@@ -23,5 +23,5 @@ This package isn't hosted on pip. So to get the code the easiest way is to use g
 
 ```shell script
 git clone https://github.com/canl/algo-trading.git
-python3 setup.py develop
+pip install -r requirements
 ```
