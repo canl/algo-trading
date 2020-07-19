@@ -3,6 +3,12 @@
 # algo-trading
 Financial Analysis, Strategies Backtesting and Algorithmic Trading in Forex and Equities 
 
+## Preview
+
+[![Performance Preview](https://canlu.pythonanywhere.com/static/img/london_breakout_gbpusd.png)](https://canlu.pythonanywhere.com/)
+
+**[View Live Performance](https://canlu.pythonanywhere.com/)**
+
 **algo-trading** reads forex market data feeds from Oanda: https://developer.oanda.com/rest-live-v20/introduction/. 
 
 Python implementations of popular Algorithmic Trading Strategies, along with genetic algorithms for tuning parameters based on historical data.
