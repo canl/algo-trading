@@ -10345,3 +10345,7 @@ body {
 .scroll-to-top i {
   font-weight: 800;
 }
+
+.page-content {
+  margin-top: 1em;
+}

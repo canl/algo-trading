@@ -1,58 +1,63 @@
-<!-- templates/signup.html -->
+<!-- templates/login.html -->
 
-{% extends "base.html" %} {% block content %}
-<div class="column is-4 is-offset-4">
-  <div class="box">
-    {% with messages = get_flashed_messages() %} {% if messages %}
-    <div class="notification is-danger">
-      {{ messages[0] }}. Go to
-      <a href="{{ url_for('auth.login') }}">login page</a>.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>Algo Trading Dashboard</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link href="static/css/login.css" rel="stylesheet"/>
+    <link href="static/css/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+            <div class="card card-signin my-5">
+                <div class="card-body">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <h5 class="card-title text-center">ACCOUNT SIGNUP</h5>
+                    <form class="form-signin" method="POST" action="/signup">
+                        <div class="form-label-group">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Email address"
+                                   required autofocus>
+                            <label for="email">Email</label>
+                        </div>
+
+                        <div class="form-label-group">
+                            <input type="text" id="name" name="name" class="form-control"
+                                   placeholder="Username"
+                                   required>
+                            <label for="name">Username</label>
+                        </div>
+                        <div class="form-label-group">
+                            <input type="password" id="password" name="password" class="form-control"
+                                   placeholder="Password"
+                                   required>
+                            <label for="password">Password</label>
+                        </div>
+
+                        <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Sign up</button>
+                        <hr class="my-4">
+                        <p class="text-center small">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>.</p>
+                        <p class="text-center small"><a class="text-danger">2020 - 2022</a>.</p>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %} {% endwith %}
-    <form class="form-signin" method="POST" action="/signup">
-      <img
-        class="mb-4"
-        src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg"
-        alt=""
-        width="72"
-        height="72"
-      />
-      <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
-      <label for="email" class="sr-only">Email address</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        class="form-control"
-        placeholder="Email address"
-        required
-        autofocus
-      />
-      <label for="name" class="sr-only">Email address</label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        class="form-control"
-        placeholder="User name"
-        required
-        autofocus
-      />
-      <label for="password" class="sr-only">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-control"
-        placeholder="Password"
-        required
-      />
-
-      <button class="btn btn-lg btn-primary btn-block" type="submit">
-        Sign up
-      </button>
-      <p class="mt-5 mb-3 text-muted">&copy; 2020-2021</p>
-    </form>
-  </div>
 </div>
-{% endblock %}
+</body>
+</html>
