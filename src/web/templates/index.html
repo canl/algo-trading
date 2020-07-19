@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-<main role="main" class="container">
+{% if not current_user.is_authenticated %}
+<div class="container-fluid">
+    <p></p>
     <div class="jumbotron">
         <h1>Algo Trading Dashboard</h1>
         <p class="lead">You need a user name and password to view the performance.</p>
         <a class="btn btn-lg btn-primary" href="{{ url_for('auth.login') }}" role="button">LOG IN &raquo;</a>
     </div>
-</main>
+</div>
+{% else %}
+{% include "dashboard.html" %}
+{% endif %}
 {% endblock %}
