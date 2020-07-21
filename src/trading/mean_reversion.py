@@ -149,9 +149,9 @@ class MeanReversionTrader:
                     self.place_order(event.instrument, side, float(event.bid), float(event.ask), atr)
                     self.cache[event.instrument][side] += 1
                     if side == OrderSide.LONG:
-                        self.cache[event.instrument]['last_buy'] = event.bid
+                        self.cache[event.instrument]['last_buy'] = float(event.bid)
                     else:
-                        self.cache[event.instrument]['last_sell'] = event.ask
+                        self.cache[event.instrument]['last_sell'] = float(event.ask)
                 except Exception as ex:
                     logger.error(f'Failed to place order for instrument: {event.instrument} with error {ex}')
             else:
