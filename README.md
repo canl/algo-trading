@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python package](https://github.com/canl/algo-trading/workflows/Python%20package/badge.svg?branch=master)
 # algo-trading
-**algo-trading** is a reserach project for Financial Analysis, Strategies Backtesting and Algorithmic Trading for Forex, Equities and Futures. 
+**algo-trading** is a research project for Financial Analysis, Strategies Backtesting and Algorithmic Trading for Forex, Equities and Futures. 
 
 ## Preview
 
