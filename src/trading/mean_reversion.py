@@ -50,6 +50,8 @@ class MeanReversionTrader:
 
     """
 
+    SPECIAL_INSTRUMENTS = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
+
     def __init__(self, events: queue.Queue, instruments: list, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
                  entry_adj: float = 0.0005, adj_btw_orders: float = 0.001, expiry_hours: int = 3, risk_pct: float = 0.02,
                  live_run: bool = False, heartbeat: int = 1):
@@ -162,9 +164,11 @@ class MeanReversionTrader:
         return pd.read_csv(f'{self.feeds_loc}/{instrument.lower()}_d.csv').set_index('time')
 
     def place_order(self, instrument: str, side: str, bid: float, ask: float, atr: float):
+        price_precision = 3 if self._has_special_instrument(instrument) else 5
         logger.info(f"Placing [{side}] order for instrument: [{instrument}]")
         is_long = side == OrderSide.LONG
-        entry = bid - self.entry_adj if is_long else ask + self.entry_adj
+        multiplier = 100 if self._has_special_instrument(instrument) else 1
+        entry = bid - self.entry_adj * multiplier if is_long else ask + self.entry_adj * multiplier
         sl = entry - atr if is_long else entry + atr
         tp = entry + atr if is_long else entry - atr
 
@@ -172,17 +176,27 @@ class MeanReversionTrader:
         expiry_time = (now_utc + timedelta(hours=self.expiry_hours)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         units = self.calculate_position_size(instrument=instrument, atr=atr)
         one_lot = 100000
-        self.om.place_limit_order(instrument=instrument, side=side, units=one_lot * units, price=entry, tp=tp, sl=sl, expiry=expiry_time)
+        self.om.place_limit_order(
+            instrument=instrument,
+            side=side,
+            units=one_lot * units,
+            price=round(entry, price_precision),
+            tp=round(tp, price_precision),
+            sl=round(sl, price_precision),
+            expiry=expiry_time
+        )
         logger.info("Order successfully placed")
 
     def calculate_position_size(self, instrument, atr):
         nav = int(float(self.am.nav))
-        special_instruments = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
-        sl_pips = atr * (100 if any(inst in instrument for inst in special_instruments) else 10000)
+        sl_pips = atr * (100 if self._has_special_instrument(instrument) else 10000)
         return pos_size(account_balance=nav, risk_pct=self.risk_pct, sl_pips=sl_pips, instrument=instrument, account_ccy='GBP')
 
     def exceed_maximum_orders(self, instrument: str, side: str) -> bool:
         return self.cache[instrument][side] >= self.max_orders
+
+    def _has_special_instrument(self, instrument):
+        return any(inst in instrument for inst in self.SPECIAL_INSTRUMENTS)
 
 
 if __name__ == '__main__':
