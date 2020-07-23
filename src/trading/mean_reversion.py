@@ -4,6 +4,7 @@ import queue
 import threading
 import time
 from datetime import datetime, timezone, timedelta
+import json
 import pandas as pd
 
 from src.account.account_manager import AccountManager
@@ -108,6 +109,7 @@ class MeanReversionTrader:
                 'last_sell': None
             }
 
+        logging.info(f"Complete Cache DB initialization:\n{json.dumps(res, indent=2)}")
         return res
 
     def run(self):
