@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from src.account.account_manager import AccountManager
 from src.common import api_request, transform
 from src.env import RUNNING_ENV
 from src.finta.utils import trending_up, trending_down
@@ -33,8 +34,14 @@ TREND_WINDOW = 60
 
 
 class LondonBreakout:
-    def __init__(self, order_manager: OrderManager):
+    def __init__(self, order_manager: OrderManager, account_manager: AccountManager):
+        """
+        London breakout trader
+        :param order_manager: Order manager for placing trades
+        :param account_manager: Account manager for calculating risk size
+        """
         self.order_manager = order_manager
+        self.account_manager = account_manager
 
     def cancel_pending_orders(self):
         pending_orders = self.order_manager.get_pending_orders()
@@ -160,7 +167,7 @@ class LondonBreakout:
                 risk_pct = self.get_risk_pct([{'id': t.get('id'), 'state': t.get('state'), 'realized_pl': float(t.get('realizedPL'))} for t in hist_trades])
                 # Risk pct is from 1% to 4%
                 logging.info(f'Risk percent is {risk_pct}')
-                position_size = pos_size(account_balance=1000, risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
+                position_size = pos_size(account_balance=int(float(self.account_manager.nav)), risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
                 logging.info(f'Position size is {position_size}')
                 one_lot = 100000
                 self.order_manager.place_stop_order(instrument='GBP_USD', side=OrderSide.LONG, units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
@@ -180,5 +187,6 @@ if __name__ == "__main__":
     if args.env == 'live':
         RUNNING_ENV.load_config('live')
     om = OrderManager(args.accountName)
-    trader = LondonBreakout(order_manager=om)
+    am = AccountManager(args.accountName)
+    trader = LondonBreakout(order_manager=om, account_manager=am)
     trader.run(args.liveRun)
