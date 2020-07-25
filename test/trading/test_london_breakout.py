@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from src.account.account_manager import AccountManager
 from src.order_utils.order_manager import OrderManager
 from src.trading.london_breakout import LondonBreakout
 
@@ -7,7 +8,8 @@ from src.trading.london_breakout import LondonBreakout
 class TestLondonBreakout(TestCase):
     def setUp(self) -> None:
         om = OrderManager(account='mt4')
-        self.trader = LondonBreakout(om)
+        am = AccountManager(account='mt4')
+        self.trader = LondonBreakout(om, am)
 
     def test_get_risk_pct(self):
         test_cases = [
