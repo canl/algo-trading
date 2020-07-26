@@ -93,7 +93,8 @@ class OrderManager:
     def get_all_trades(self, instruments: list = None, return_size: int = None):
         params = {
             "instrument": ",".join(instruments) if instruments else [],
-            "state": "ALL"
+            "state": "ALL",
+            "count": 500
         }
         r = trades.TradesList(self.account_id, params=params)
         try:
@@ -112,13 +113,13 @@ if __name__ == '__main__':
     manager = OrderManager('mt4')
 
     print(manager.get_all_trades())
-    # print(manager.get_open_trades())
-    #
-    # now_utc = datetime.now(timezone.utc)
-    # expiry_time = (now_utc + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    #
-    # manager.place_limit_order('GBP_USD', OrderSide.LONG, 100, 1.20, 1.25, 1.15, expiry=expiry_time)
-    # manager.place_limit_order('GBP_USD', OrderSide.SHORT, 100, 1.30, 1.35, 1.25, expiry=expiry_time)
-    #
-    # for o in manager.get_pending_orders():
-    #     manager.cancel_order(order_id=o.get('id'))
+    print(manager.get_open_trades())
+
+    now_utc = datetime.now(timezone.utc)
+    expiry_time = (now_utc + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+    manager.place_limit_order('GBP_USD', OrderSide.LONG, 100, 1.20, 1.25, 1.15, expiry=expiry_time)
+    manager.place_limit_order('GBP_USD', OrderSide.SHORT, 100, 1.30, 1.35, 1.25, expiry=expiry_time)
+
+    for o in manager.get_pending_orders():
+        manager.cancel_order(order_id=o.get('id'))
