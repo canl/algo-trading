@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Welcome, {{current_user.name}}!
-</h1>
+    <div class="container-fluid page-content">
+        <div class="jumbotron">
+            <h1 class="title">
+                Welcome, {{ current_user.name }}!
+            </h1>
+        </div>
+    </div>
 {% endblock %}

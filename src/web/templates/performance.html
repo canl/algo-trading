@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <script>
+        $(document).ready(function () {
+            $("#trade-blotter").DataTable({
+                ajax: "/api/v1/{{env}}/account/{{account}}/orders",
+                columns: [
+                    {data: 'id', class: 'text-center'},
+                    {data: 'openTime', class: 'text-center'},
+                    {data: 'side', class: 'text-center'},
+                    {data: 'instrument', class: 'text-center'},
+                    {data: 'units', class: 'text-right'},
+                    {data: 'entryPrice', class: 'text-right'},
+                    {data: 'exitPrice', class: 'text-right'},
+                    {data: 'state', class: 'text-center'},
+                    {data: 'financing', class: 'text-right'},
+                    {data: 'pl', class: 'text-right'},
+                    {data: 'closeTime', class: 'text-center'}
+                ],
+                fixedHeader: {header: true},
+                order: [[0, "desc"]],
+                pageLength: 25,
+                responsive: true,
+                rowCallback: function (row, data, index) {
+                    if (data['pl'] > 0) {
+                        $(row).find('td:eq(9)').css('color', 'green');
+                    } else {
+                        $(row).find('td:eq(9)').css('color', 'red');
+                    }
+                }
+            });
+        })
+    </script>
+    <div class="container-fluid page-content">
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-table mr-1"></i>Trade Blotter
+            </div>
+            <div class="card-body">
+                <table class="table" id="trade-blotter" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Open Time</th>
+                        <th>Side</th>
+                        <th>Instrument</th>
+                        <th>Units</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>State</th>
+                        <th>Financing</th>
+                        <th>PL</th>
+                        <th>Close Time</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

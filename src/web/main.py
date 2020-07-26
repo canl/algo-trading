@@ -19,3 +19,9 @@ def profile():
 @login_required
 def dashboard():
     return render_template('index.html', name=current_user.name)
+
+
+@main.route('/perf/<env>/<account>')
+@login_required
+def account_performance(env: str, account: str):
+    return render_template('performance.html', env=env, account=account, name=current_user.name)

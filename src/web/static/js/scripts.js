@@ -6,11 +6,12 @@
 (function ($) {
     "use strict";
 
-    // Add active state to sidbar nav links
+    // Add active state to sidebar nav links
     const path = window.location.href; // because the 'href' property of the DOM element is the absolute path
     $("#layoutSidenav_nav .sb-sidenav a.nav-link").each(function () {
         if (this.href === path) {
             $(this).addClass("active");
+            $(this).parents().removeClass('collapse');
         }
     });
 

@@ -24,7 +24,7 @@ def account(env: str, name: str):
             'balance': float(res['balance']),
             'currency': res['currency'],
             'financing': res['financing'],
-            'pl': float(res['pl']),
+            'pl': round(float(res['pl']), 2),
             'nav': float(res['NAV']),
             'unrealizedPL': float(res['unrealizedPL']),
             "openPositionCount": res['openPositionCount'],
@@ -46,16 +46,16 @@ def order(env: str, name: str):
         'data': [
             {
                 'id': el['id'],
-                'side': OrderSide.LONG if float(el['initialUnits']) > 0 else OrderSide.SHORT,
+                'side': OrderSide.LONG.upper() if float(el['initialUnits']) > 0 else OrderSide.SHORT.upper(),
                 'instrument': el['instrument'],
                 'units': abs(int(float(el['initialUnits']))),
                 'entryPrice': float(el['price']),
-                'exitPrice': float((el['takeProfitOrder' if float(el['realizedPL']) > 0 else 'stopLossOrder']['price'])) if el['state'] == 'CLOSED' else None,
-                'financing': el['financing'],
-                'pl': el['unrealizedPL'] if el['state'] == 'OPEN' else el['realizedPL'],
+                'exitPrice': float(el['averageClosePrice']) if el['state'] == 'CLOSED' else None,
+                'financing': round(float(el['financing']), 2),
+                'pl': round(float(el['unrealizedPL']), 2) if el['state'] == 'OPEN' else round(float(el['realizedPL']), 2),
                 'state': el['state'],
-                'openTime': el['openTime'],
-                'closeTime': el['closeTime'] if el['state'] == 'CLOSED' else None
+                'openTime': el['openTime'][:19].replace("T", " "),
+                'closeTime': el['closeTime'][:19].replace("T", " ") if el['state'] == 'CLOSED' else None
             }
             for el in res
         ]
@@ -64,8 +64,9 @@ def order(env: str, name: str):
 
 def valid_env(env):
     if env == 'live':
-        if env == 'live':
-            RUNNING_ENV.load_config('live')
+        RUNNING_ENV.load_config('live')
+    else:
+        RUNNING_ENV.load_config('practice')
 
     if env not in ('practice', 'live'):
         return {
