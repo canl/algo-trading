@@ -10,14 +10,31 @@
                     {data: 'openTime', class: 'text-center'},
                     {data: 'side', class: 'text-center'},
                     {data: 'instrument', class: 'text-center'},
-                    {data: 'units', class: 'text-right'},
+                    {
+                        data: 'units',
+                        class: 'text-right',
+                        render: $.fn.dataTable.render.number(',', '.', 0)
+                    },
                     {data: 'entryPrice', class: 'text-right'},
                     {data: 'exitPrice', class: 'text-right'},
                     {data: 'state', class: 'text-center'},
-                    {data: 'financing', class: 'text-right'},
-                    {data: 'pl', class: 'text-right'},
+                    {
+                        data: 'financing',
+                        class: 'text-right',
+                        render: $.fn.dataTable.render.number(',', '.', 2, '£')
+                    },
+                    {
+                        data: 'pl',
+                        class: 'text-right',
+                        render: $.fn.dataTable.render.number(',', '.', 2, '£')
+                    },
                     {data: 'closeTime', class: 'text-center'}
                 ],
+                formatNumber: function (toFormat) {
+                    return toFormat.toString().replace(
+                        /\B(?=(\d{3})+(?!\d))/g, "'"
+                    );
+                },
                 fixedHeader: {header: true},
                 order: [[0, "desc"]],
                 pageLength: 25,
