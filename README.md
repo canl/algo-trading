@@ -5,7 +5,7 @@
 
 ## Preview
 
-[![Performance Preview](https://canlu.pythonanywhere.com/static/img/london_breakout_gbpusd.png)](https://canlu.pythonanywhere.com/)
+[![Performance Preview](https://canlu.pythonanywhere.com/img/london_breakout_gbpusd.png)](https://canlu.pythonanywhere.com/)
 
 **[View Live Performance](https://canlu.pythonanywhere.com/)**
 
