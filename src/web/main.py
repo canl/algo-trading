@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
 
 main = Blueprint('main', __name__)
@@ -24,4 +24,5 @@ def dashboard():
 @main.route('/perf/<env>/<account>')
 @login_required
 def account_performance(env: str, account: str):
-    return render_template('performance.html', env=env, account=account, name=current_user.name)
+    start_from = request.args.get('start_from', default=0, type=int)
+    return render_template('performance.html', env=env, account=account, start_from=start_from, name=current_user.name)

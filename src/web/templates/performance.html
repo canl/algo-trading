@@ -4,7 +4,7 @@
     <script>
         $(document).ready(function () {
             $("#trade-blotter").DataTable({
-                ajax: "/api/v1/{{env}}/account/{{account}}/orders",
+                ajax: "/api/v1/{{env}}/account/{{account}}/orders?start_from={{ start_from }}",
                 columns: [
                     {data: 'id', class: 'text-center'},
                     {data: 'openTime', class: 'text-center'},

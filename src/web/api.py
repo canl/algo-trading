@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from flask import Blueprint
+from flask import Blueprint, request
 
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
@@ -11,7 +11,7 @@ api = Blueprint('api', __name__)
 
 
 @api.route('/<env>/account/<name>', methods=['GET'])
-def account(env: str, name: str):
+def account(env: str, name: str) -> dict:
     valid_env(env)
 
     am = AccountManager(account=name)
@@ -37,10 +37,11 @@ def account(env: str, name: str):
 
 
 @api.route('/<env>/account/<name>/orders', methods=['GET'])
-def order(env: str, name: str):
+def order(env: str, name: str) -> dict:
     valid_env(env)
     om = OrderManager(account=name)
-    res = om.get_all_trades()
+    start_from = request.args.get('start_from', default=0, type=int)
+    res = om.get_all_trades(start_from=start_from)
     return {
         'status': HTTPStatus.OK,
         'data': [

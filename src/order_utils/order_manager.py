@@ -90,7 +90,7 @@ class OrderManager:
             logging.info(json.dumps(rv, indent=2))
             return rv.get('trades')
 
-    def get_all_trades(self, instruments: list = None, return_size: int = None):
+    def get_all_trades(self, instruments: list = None, start_from: int = 0):
         params = {
             "instrument": ",".join(instruments) if instruments else [],
             "state": "ALL",
@@ -102,7 +102,7 @@ class OrderManager:
         except V20Error as err:
             logging.error(r.status_code, err)
         else:
-            res = rv.get('trades') if return_size else rv.get('trades')[:return_size]
+            res = [el for el in rv.get('trades') if int(el['id']) >= start_from]
             logging.debug(json.dumps(res, indent=2))
             return sorted(res, key=lambda x: int(x['id']))
 
