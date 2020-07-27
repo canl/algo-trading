@@ -77,7 +77,7 @@
                     <div class="sb-sidenav-menu-heading">Interface</div>
                     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
                        aria-expanded="false" aria-controls="collapsePages">
-                        <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                         Performance
                         <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                     </a>
@@ -86,6 +86,7 @@
                         <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
                             <a class="nav-link collapsed" href="#" data-toggle="collapse"
                                data-target="#pagesCollapseLive" aria-expanded="false" aria-controls="pagesCollapseLive">
+                                <div class="sb-nav-link-icon"><i class="fas fa-plane-departure"></i></div>
                                 Live
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
@@ -93,13 +94,14 @@
                                  data-parent="#sidenavAccordionPages">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link"
-                                       href="{{ url_for('main.account_performance', env='live', account='mt4') }}">London
-                                        Breakout</a>
+                                       href="{{ url_for('main.account_performance', env='live', account='mt4') }}">
+                                        London Breakout</a>
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-toggle="collapse"
                                data-target="#pagesCollapsePractice" aria-expanded="false"
                                aria-controls="pagesCollapsePractice">
+                                <div class="sb-nav-link-icon"><i class="fas fa-graduation-cap"></i></div>
                                 Practice
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
@@ -107,8 +109,8 @@
                                  data-parent="#sidenavAccordionPages">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link"
-                                       href="{{ url_for('main.account_performance', env='practice', account='mt4', start_from=2780) }}">Mean
-                                        Reversion
+                                       href="{{ url_for('main.account_performance', env='practice', account='mt4', start_from=2780) }}">
+                                        Mean Reversion
                                     </a>
                                 </nav>
                             </div>
