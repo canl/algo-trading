@@ -6167,6 +6167,10 @@ button.bg-light:focus {
   background-color: #343a40 !important;
 }
 
+.bg-dark-blue {
+  background-color: #196eb0 !important;
+}
+
 a.bg-dark:hover, a.bg-dark:focus,
 button.bg-dark:hover,
 button.bg-dark:focus {
@@ -10204,7 +10208,7 @@ body {
 }
 
 .sb-sidenav-dark {
-  background-color: #212529;
+  background-color: #115fa4;
   color: rgba(255, 255, 255, 0.5);
 }
 .sb-sidenav-dark .sb-sidenav-menu .sb-sidenav-menu-heading {
