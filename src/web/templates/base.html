@@ -32,12 +32,14 @@
     <link href="/css/datatable.css" rel="stylesheet"/>
     <!-- Datatable-->
     <link href="/css/styles.css" rel="stylesheet"/>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon-pw.ico') }}">
 
 </head>
 <body class="sb-nav-fixed" id="page-top">
 <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark-blue">
-    <a class="navbar-brand" href="{{ url_for('main.index') }}">Algo Trading</a>
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">
+        <div class="sb-nav-link-icon"><img src="/favicon-pw.ico" alt="" width="25" height="25">
+            <strong>Algo</strong> Trading</div></a>
     <button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" href="#"><i class="fas fa-bars"></i>
     </button>
     <!-- Navbar Search-->
