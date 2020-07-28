@@ -145,6 +145,12 @@ class MeanReversionTrader:
         if buy_signal or sell_signal:
             side = OrderSide.LONG if buy_signal else OrderSide.SHORT
             logger.info(f"{side} signal detected for instrument [{event.instrument}]!")
+            logging.info(f"Cache DB state:\n{json.dumps(self.cache[event.instrument], indent=2)}")
+            if side == OrderSide.LONG:
+                logger.info(f"algo trading criteria: ask price {event.ask} <= buy_threshold {buy_threshold}, rsi {rsi} between 30 and 70")
+            else:
+                logger.info(f"algo trading criteria: bid price {event.bid} >= sell_threshold {sell_threshold}, rsi {rsi} between 30 and 70")
+
             if self.live_run:
                 if self.exceed_maximum_orders(instrument=event.instrument, side=side):
                     logger.warning(f"Exceeded maximum allowed order side: [{self.max_orders}]!")
