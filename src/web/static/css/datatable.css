@@ -2,3 +2,10 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 10px;
 }
+
+div.dataTables_wrapper div.dataTables_info {
+    padding-top: 0.85em;
+    white-space: nowrap;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
