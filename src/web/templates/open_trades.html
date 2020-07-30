@@ -1,7 +1,7 @@
 <script>
     $(document).ready(function () {
-        $("#trade-blotter").DataTable({
-            ajax: "/api/v1/{{env}}/account/{{account}}/orders?state=CLOSED&start_from={{ start_from }}",
+        $("#open-trades").DataTable({
+            ajax: "/api/v1/{{env}}/account/{{account}}/orders?state=OPEN&start_from={{ start_from }}",
             columns: [
                 {data: 'id', class: 'text-center'},
                 {data: 'openTime', class: 'text-center'},
@@ -13,7 +13,8 @@
                     render: $.fn.dataTable.render.number(',', '.', 0)
                 },
                 {data: 'entryPrice', class: 'text-right'},
-                {data: 'exitPrice', class: 'text-right'},
+                {data: 'tp', class: 'text-right'},
+                {data: 'sl', class: 'text-right'},
                 {
                     data: 'financing',
                     class: 'text-right',
@@ -23,8 +24,7 @@
                     data: 'pl',
                     class: 'text-right',
                     render: $.fn.dataTable.render.number(',', '.', 2, '£')
-                },
-                {data: 'closeTime', class: 'text-center'}
+                }
             ],
             formatNumber: function (toFormat) {
                 return toFormat.toString().replace(
@@ -33,13 +33,13 @@
             },
             fixedHeader: {header: true},
             order: [[0, "desc"]],
-            pageLength: 10,
+            bPaginate: false,
             responsive: true,
             rowCallback: function (row, data, index) {
                 if (data['pl'] > 0) {
-                    $(row).find('td:eq(8)').css('color', 'green');
+                    $(row).find('td:eq(9)').css('color', 'green');
                 } else {
-                    $(row).find('td:eq(8)').css('color', 'red');
+                    $(row).find('td:eq(9)').css('color', 'red');
                 }
             }
         });
@@ -47,10 +47,10 @@
 </script>
 <div class="card mb-3">
     <div class="card-header">
-        <i class="fas fa-table mr-1"></i>Trade Blotter
+        <i class="fas fa-bell mr-1"></i>Open Trade
     </div>
     <div class="card-body">
-        <table class="table" id="trade-blotter" width="100%" cellspacing="0">
+        <table class="table" id="open-trades" width="100%" cellspacing="0">
             <thead>
             <tr>
                 <th>Ticket</th>
@@ -59,10 +59,10 @@
                 <th>Instrument</th>
                 <th>Units</th>
                 <th>Entry</th>
-                <th>Exit</th>
+                <th>TP</th>
+                <th>SL</th>
                 <th>Swap</th>
                 <th>PL</th>
-                <th>Close Time</th>
             </tr>
             </thead>
         </table>

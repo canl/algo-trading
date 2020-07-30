@@ -41,7 +41,8 @@ def order(env: str, name: str) -> dict:
     valid_env(env)
     om = OrderManager(account=name)
     start_from = request.args.get('start_from', default=0, type=int)
-    res = om.get_all_trades(start_from=start_from)
+    state = request.args.get('state', default='ALL', type=str)
+    res = om.get_trades(state=state, start_from=start_from)
     return {
         'status': HTTPStatus.OK,
         'data': [
@@ -51,6 +52,8 @@ def order(env: str, name: str) -> dict:
                 'instrument': el['instrument'],
                 'units': abs(int(float(el['initialUnits']))),
                 'entryPrice': float(el['price']),
+                'tp': float(el.get('takeProfitOrder').get('price')) if el.get('takeProfitOrder') else None,
+                'sl': float(el.get('stopLossOrder').get('price')) if el.get('stopLossOrder') else None,
                 'exitPrice': float(el['averageClosePrice']) if el['state'] == 'CLOSED' else None,
                 'financing': round(float(el['financing']), 2),
                 'pl': round(float(el['unrealizedPL']), 2) if el['state'] == 'OPEN' else round(float(el['realizedPL']), 2),

@@ -163,7 +163,7 @@ class LondonBreakout:
         if live_run:
             try:
                 self.cancel_pending_orders()
-                hist_trades = self.order_manager.get_all_trades(instruments=["GBP_USD"])
+                hist_trades = self.order_manager.get_trades(instruments=["GBP_USD"])
                 risk_pct = self.get_risk_pct([{'id': t.get('id'), 'state': t.get('state'), 'realized_pl': float(t.get('realizedPL'))} for t in hist_trades])
                 # Risk pct is from 1% to 4%
                 logging.info(f'Risk percent is {risk_pct}')

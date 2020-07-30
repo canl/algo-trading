@@ -90,10 +90,10 @@ class OrderManager:
             logging.info(json.dumps(rv, indent=2))
             return rv.get('trades')
 
-    def get_all_trades(self, instruments: list = None, start_from: int = 0):
+    def get_trades(self, instruments: list = None, state: str = 'ALL', start_from: int = 0):
         params = {
             "instrument": ",".join(instruments) if instruments else [],
-            "state": "ALL",
+            "state": state,
             "count": 500
         }
         r = trades.TradesList(self.account_id, params=params)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     manager = OrderManager('mt4')
 
-    print(manager.get_all_trades())
+    print(manager.get_trades())
     print(manager.get_open_trades())
 
     now_utc = datetime.now(timezone.utc)
