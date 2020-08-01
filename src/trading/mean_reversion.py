@@ -13,6 +13,7 @@ from src.event import TickEvent
 from src.order_utils.order import OrderSide
 from src.order_utils.order_manager import OrderManager
 from src.position_calculator import pos_size
+from src.pricing.poll_price_event import PollPriceEvent
 from src.pricing.stream_price_event import StreamPriceEvent
 from src.utils.timeout_cache import cache
 
@@ -147,9 +148,9 @@ class MeanReversionTrader:
             logger.info(f"{side} signal detected for instrument [{event.instrument}]!")
             logging.info(f"Cache DB state:\n{json.dumps(self.cache[event.instrument], indent=2)}")
             if side == OrderSide.LONG:
-                logger.info(f"algo trading criteria: ask price {event.ask} <= buy_threshold {buy_threshold}, rsi {rsi} between 30 and 70")
+                logger.info(f"algo trading criteria for instrument [{event.instrument}]: ask price {event.ask} <= buy_threshold {buy_threshold}, rsi {rsi} between 30 and 70")
             else:
-                logger.info(f"algo trading criteria: bid price {event.bid} >= sell_threshold {sell_threshold}, rsi {rsi} between 30 and 70")
+                logger.info(f"algo trading criteria for instrument [{event.instrument}]: bid price {event.bid} >= sell_threshold {sell_threshold}, rsi {rsi} between 30 and 70")
 
             if self.live_run:
                 if self.exceed_maximum_orders(instrument=event.instrument, side=side):
@@ -167,7 +168,7 @@ class MeanReversionTrader:
             else:
                 logger.info("Dry run for testing only, not doing anything!")
 
-    @cache(seconds=3600)
+    @cache(seconds=600)
     def read_daily_price_feed(self, instrument):
         return pd.read_csv(f'{self.feeds_loc}/{instrument.lower()}_d.csv').set_index('time')
 
@@ -210,6 +211,7 @@ class MeanReversionTrader:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Mean Reversion Trading Strategy")
     parser.add_argument('--liveRun', help="Flag to indicate dry or live run", action='store_true', default=False)
+    parser.add_argument('--priceMode', help="Switch between streaming and polling prices", dest="priceMode", default='poll')
     parser.add_argument('--env', action="store", dest="env", default='practice')
     parser.add_argument('--accountName', action="store", dest='accountName', default='mt4')
     parser.add_argument('--priceDir', action="store", dest="priceDir", default='c:/temp/prices')
@@ -222,8 +224,9 @@ if __name__ == '__main__':
     ]
 
     t = MeanReversionTrader(events=price_events, instruments=TRADED_INSTRUMENTS, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
-    spe = StreamPriceEvent(TRADED_INSTRUMENTS, price_events)
-    price_thread = threading.Thread(target=spe.start)
+    pe = PollPriceEvent(TRADED_INSTRUMENTS, price_events, heartbeat=120) if args.priceMode == 'poll' else StreamPriceEvent(TRADED_INSTRUMENTS, price_events)
+
+    price_thread = threading.Thread(target=pe.start)
     price_thread.start()
 
     t.run()
