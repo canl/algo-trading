@@ -67,4 +67,4 @@ if __name__ == '__main__':
         'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
     )
     for inst in popular_pairs:
-        output_feeds(instrument=inst, st=datetime(2005, 1, 1), et=datetime(2020, 6, 30), short_win=20, long_win=10, ema_period=55, save_dir='c:/temp')
+        output_feeds(instrument=inst, st=datetime(2020, 1, 1), et=datetime(2020, 7, 31), short_win=20, long_win=10, ema_period=55, save_dir='c:/temp')

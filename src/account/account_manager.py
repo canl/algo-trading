@@ -16,13 +16,29 @@ class AccountManager:
 
     @property
     def nav(self):
-        return self.get_info()['NAV']
+        return float(self.get_info()['NAV'])
 
     @property
     def pl(self):
-        return self.get_info()['pl']
+        return float(self.get_info()['pl'])
 
-    @cache(seconds=7200)
+    @property
+    def unrealized_pl(self):
+        return float(self.get_info()['unrealizedPL'])
+
+    @property
+    def balance(self):
+        return float(self.get_info()['balance'])
+
+    @property
+    def financing(self):
+        return float(self.get_info()['financing'])
+
+    @property
+    def initial_balance(self):
+        return self.balance - (self.pl + self.financing)
+
+    @cache(seconds=3600)
     def get_info(self):
         try:
             r = v20accounts.AccountSummary(self.account_id)

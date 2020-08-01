@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from flask import Blueprint, request
+from typing import List
 
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
@@ -21,12 +22,13 @@ def account(env: str, name: str) -> dict:
         'data': {
             'id': res['id'],
             'name': res['alias'],
-            'balance': float(res['balance']),
+            'initial_balance': am.initial_balance,
+            'balance': am.balance,
             'currency': res['currency'],
-            'financing': res['financing'],
-            'pl': round(float(res['pl']), 2),
-            'nav': float(res['NAV']),
-            'unrealizedPL': float(res['unrealizedPL']),
+            'financing': am.financing,
+            'pl': am.pl,
+            'nav': am.nav,
+            'unrealizedPL': am.unrealized_pl,
             "openPositionCount": res['openPositionCount'],
             "openTradeCount": res['openTradeCount'],
             "pendingOrderCount": res['pendingOrderCount'],
@@ -38,11 +40,7 @@ def account(env: str, name: str) -> dict:
 
 @api.route('/<env>/account/<name>/orders', methods=['GET'])
 def order(env: str, name: str) -> dict:
-    valid_env(env)
-    om = OrderManager(account=name)
-    start_from = request.args.get('start_from', default=0, type=int)
-    state = request.args.get('state', default='ALL', type=str)
-    res = om.get_trades(state=state, start_from=start_from)
+    trades = get_trades(env, name)
     return {
         'status': HTTPStatus.OK,
         'data': [
@@ -61,9 +59,57 @@ def order(env: str, name: str) -> dict:
                 'openTime': el['openTime'][:19].replace("T", " "),
                 'closeTime': el['closeTime'][:19].replace("T", " ") if el['state'] == 'CLOSED' else None
             }
-            for el in res
+            for el in trades
         ]
     }
+
+
+@api.route('/<env>/account/<name>/stats', methods=['GET'])
+def account_stats(env: str, name: str):
+    # nav, wins, losses, winning_pips, win_rate, avg_win, avg_loss, no_of_buy, no_of_sells, profit_factor
+    am = AccountManager(account=name)
+    trades = [el for el in get_trades(env, name) if el['state'] == 'CLOSED']
+    no_of_trades = len(trades)
+    no_of_buys = len([el for el in trades if float(el['initialUnits']) > 0])
+    no_of_sells = len([el for el in trades if float(el['initialUnits']) < 0])
+    no_of_wins = len([el for el in trades if float(el['realizedPL']) > 0])
+    no_of_losses = len([el for el in trades if float(el['realizedPL']) < 0])
+    win_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) for el in trades if float(el['initialUnits']) > 0]) * 10000, 0)
+    loss_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) for el in trades if float(el['initialUnits']) < 0]) * 10000, 0)
+    avg_win_pips = win_pips / no_of_wins if no_of_wins else 0
+    avg_loss_pips = loss_pips / no_of_losses if no_of_losses else 0
+    pl_pips = win_pips - loss_pips
+    profit_factor = win_pips / loss_pips if loss_pips else 0
+    return {
+        'status': HTTPStatus.OK,
+        'data': {
+            'nav': am.nav,
+            'initial_balance': am.initial_balance,
+            'pl': am.pl + am.financing,
+            'pl_pct': (am.pl + am.financing) / am.initial_balance,
+            'pl_pips': pl_pips,
+            'no_of_trades': no_of_trades,
+            'no_of_buys': no_of_buys,
+            'no_of_sells': no_of_sells,
+            'no_of_wins': no_of_wins,
+            'no_of_losses': no_of_losses,
+            'win_percent': round(no_of_wins / no_of_trades, 4) if no_of_trades else 0,
+            'loss_percent': round(no_of_losses / no_of_trades, 4) if no_of_trades else 0,
+            'win_pips': win_pips,
+            'loss_pips': loss_pips,
+            'avg_win_pips': round(avg_win_pips, 0),
+            'avg_loss_pips': round(avg_loss_pips, 0),
+            'profit_factor': round(profit_factor, 2)
+        }
+    }
+
+
+def get_trades(env: str, name: str) -> List[dict]:
+    valid_env(env)
+    om = OrderManager(account=name)
+    start_from = request.args.get('start_from', default=0, type=int)
+    state = request.args.get('state', default='ALL', type=str)
+    return om.get_trades(state=state, start_from=start_from)
 
 
 def valid_env(env):
