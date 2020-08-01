@@ -28,12 +28,12 @@ def account(env: str, name: str) -> dict:
             'financing': am.financing,
             'pl': am.pl,
             'nav': am.nav,
-            'unrealizedPL': am.unrealized_pl,
-            "openPositionCount": res['openPositionCount'],
-            "openTradeCount": res['openTradeCount'],
-            "pendingOrderCount": res['pendingOrderCount'],
-            'lastTransactionID': float(res['lastTransactionID']),
-            'createdTime': res['createdTime']
+            'unrealized_pl': am.unrealized_pl,
+            "open_position_count": res['openPositionCount'],
+            "open_trade_count": res['openTradeCount'],
+            "pending_order_count": res['pendingOrderCount'],
+            'last_transaction_id': float(res['lastTransactionID']),
+            'created_time': res['createdTime']
         }
     }
 
@@ -66,7 +66,8 @@ def order(env: str, name: str) -> dict:
 
 @api.route('/<env>/account/<name>/stats', methods=['GET'])
 def account_stats(env: str, name: str):
-    # nav, wins, losses, winning_pips, win_rate, avg_win, avg_loss, no_of_buy, no_of_sells, profit_factor
+    valid_env(env)
+
     am = AccountManager(account=name)
     trades = [el for el in get_trades(env, name) if el['state'] == 'CLOSED']
     no_of_trades = len(trades)
@@ -86,6 +87,7 @@ def account_stats(env: str, name: str):
             'nav': am.nav,
             'initial_balance': am.initial_balance,
             'pl': am.pl + am.financing,
+            'unrealized_pL': am.unrealized_pl,
             'pl_pct': (am.pl + am.financing) / am.initial_balance,
             'pl_pips': pl_pips,
             'no_of_trades': no_of_trades,
