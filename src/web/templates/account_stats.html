@@ -118,7 +118,7 @@
         return parts.join(".");
     }
 
-    const url = "/api/v1/{{env}}/account/{{account}}/stats"
+    const url = "/api/v1/{{env}}/account/{{account}}/stats?start_from={{ start_from }}"
     fetch(url).then(function (response) {
         response.json().then(function (payload) {
             let direction = payload.data.pl_pct > 0 ?
@@ -126,11 +126,13 @@
                 '<i class="fa fa-arrow-down" aria-hidden="true" style="font-size:18px;color: #DC3545"></i>'
             ytd.innerHTML = direction + (payload.data.pl_pct * 100).toFixed(2) + '%';
             payload.data.pl_pct > 0 ? ytd.classList.add("txt_success") : ytd.classList.add("txt_danger");
+
             rpl.textContent = '£' + numberWithCommas(payload.data.pl.toFixed(2))
-            payload.data.pl_pct > 0 ? rpl.classList.add("txt_success") : rpl.classList.add("txt_danger");
-            ib.textContent = '£' + numberWithCommas(payload.data.initial_balance.toFixed(0))
-            wp.innerHTML = direction + numberWithCommas(payload.data.pl_pips.toFixed(0))
-            payload.data.pl_pct > 0 ? wp.classList.add("txt_success") : wp.classList.add("txt_danger");
+            payload.data.pl > 0 ? rpl.classList.add("txt_success") : rpl.classList.add("txt_danger");
+
+            upl.textContent = '£' + numberWithCommas(payload.data.unrealized_pL.toFixed(2))
+            payload.data.unrealized_pL > 0 ? upl.classList.add("txt_success") : upl.classList.add("txt_danger");
+
             pf.textContent = payload.data.profit_factor.toFixed(2)
             if (payload.data.profit_factor > 2) {
                 pf.classList.add("txt_success")
@@ -140,6 +142,7 @@
                 pf.classList.add("txt_danger")
             }
 
+            ib.textContent = '£' + numberWithCommas(payload.data.initial_balance.toFixed(0))
         });
     });
 </script>
@@ -165,18 +168,9 @@
 
         <div class='dashboard-card'>
             <h2 class='dashboard-card__title'>
-                Initial Balance
+                Unrealized PL
             </h2>
-            <p class='dashboard-card__detail txt_primary' id="ib">
-                £0.00
-            </p>
-        </div>
-
-        <div class='dashboard-card'>
-            <h2 class='dashboard-card__title'>
-                Winning PIPS
-            </h2>
-            <p class='dashboard-card__detail txt_success' id="wp">
+            <p class='dashboard-card__detail' id="upl">
                 0
             </p>
         </div>
@@ -185,8 +179,17 @@
             <h2 class='dashboard-card__title'>
                 Profit Factor
             </h2>
-            <p class='dashboard-card__detail txt_warn' id="pf">
+            <p class='dashboard-card__detail' id="pf">
                 0
+            </p>
+        </div>
+
+        <div class='dashboard-card'>
+            <h2 class='dashboard-card__title'>
+                Initial Balance
+            </h2>
+            <p class='dashboard-card__detail txt_primary' id="ib">
+                £0.00
             </p>
         </div>
 

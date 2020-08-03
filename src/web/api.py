@@ -10,6 +10,8 @@ from src.order_utils.order_manager import OrderManager
 
 api = Blueprint('api', __name__)
 
+SPECIAL_INSTRUMENTS = ('XAU', 'JPY', 'BCO')
+
 
 @api.route('/<env>/account/<name>', methods=['GET'])
 def account(env: str, name: str) -> dict:
@@ -75,18 +77,23 @@ def account_stats(env: str, name: str):
     no_of_sells = len([el for el in trades if float(el['initialUnits']) < 0])
     no_of_wins = len([el for el in trades if float(el['realizedPL']) > 0])
     no_of_losses = len([el for el in trades if float(el['realizedPL']) < 0])
-    win_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) for el in trades if float(el['initialUnits']) > 0]) * 10000, 0)
-    loss_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) for el in trades if float(el['initialUnits']) < 0]) * 10000, 0)
+    win_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) * (100 if _has_special_instrument(el['instrument']) else 10000)
+                          for el in trades if float(el['realizedPL']) > 0]), 0)
+    loss_pips = round(sum([abs(float(el['price']) - float(el['averageClosePrice'])) * (100 if _has_special_instrument(el['instrument']) else 10000)
+                           for el in trades if float(el['realizedPL']) < 0]), 0)
     avg_win_pips = win_pips / no_of_wins if no_of_wins else 0
     avg_loss_pips = loss_pips / no_of_losses if no_of_losses else 0
     pl_pips = win_pips - loss_pips
-    profit_factor = win_pips / loss_pips if loss_pips else 0
+    gross_profit = sum([float(el['realizedPL']) for el in trades if float(el['realizedPL']) > 0])
+    gross_loss = sum([float(el['realizedPL']) for el in trades if float(el['realizedPL']) < 0])
+
+    profit_factor = abs(gross_profit / gross_loss) if loss_pips else 0
     return {
         'status': HTTPStatus.OK,
         'data': {
             'nav': am.nav,
             'initial_balance': am.initial_balance,
-            'pl': am.pl + am.financing,
+            'pl': gross_profit + gross_loss,
             'unrealized_pL': am.unrealized_pl,
             'pl_pct': (am.pl + am.financing) / am.initial_balance,
             'pl_pips': pl_pips,
@@ -104,6 +111,10 @@ def account_stats(env: str, name: str):
             'profit_factor': round(profit_factor, 2)
         }
     }
+
+
+def _has_special_instrument(instrument):
+    return any(inst in instrument for inst in SPECIAL_INSTRUMENTS)
 
 
 def get_trades(env: str, name: str) -> List[dict]:
