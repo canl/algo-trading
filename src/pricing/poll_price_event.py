@@ -2,9 +2,10 @@ import logging
 import queue
 import threading
 import time
+import requests
+from typing import List
 
 import oandapyV20.endpoints.pricing as pricing
-from typing import List
 
 from src.env import RUNNING_ENV
 from src.event import TickEvent
@@ -40,8 +41,11 @@ class PollPriceEvent:
         tick_events = []
         params = {"instruments": ",".join(self.instruments)}
         req = pricing.PricingInfo(accountID=self.account_id, params=params)
-        resp = RUNNING_ENV.api.request(req)
-        if resp:
+        try:
+            resp = RUNNING_ENV.api.request(req)
+        except requests.RequestException:
+            logger.error("Failed to poll price from Oanda, wait for the next poll and retry ....")
+        else:
             for price in resp['prices']:
                 try:
                     tick_events.append(
