@@ -170,8 +170,12 @@ class LondonBreakout:
                 position_size = pos_size(account_balance=int(float(self.account_manager.nav)), risk_pct=risk_pct, sl_pips=diff * 10000, instrument='GBP_USD')
                 logging.info(f'Position size is {position_size}')
                 one_lot = 100000
-                self.order_manager.place_stop_order(instrument='GBP_USD', side=OrderSide.LONG, units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
-                self.order_manager.place_stop_order(instrument='GBP_USD', side=OrderSide.SHORT, units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
+                if trend == 'up':
+                    self.order_manager.place_stop_order(instrument='GBP_USD', side=OrderSide.LONG, units=one_lot * position_size, price=last_high, tp=long_tp, sl=last_low)
+                elif trend == 'down':
+                    self.order_manager.place_stop_order(instrument='GBP_USD', side=OrderSide.SHORT, units=one_lot * position_size, price=last_low, tp=short_tp, sl=last_high)
+                else:
+                    logging.info(f"Current trend is {trend}, cannot decide the direction, so sit out.")
             except Exception as ex:
                 logging.error(f"Failed to place order with error:\n{ex}")
         else:

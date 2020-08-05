@@ -53,5 +53,6 @@ def trending_down(df: pd.Series, period: int) -> pd.Series:
 
 
 if __name__ == '__main__':
-    df = pd.DataFrame({'price': [1, 2, 3, 4, 5]})
-    print(trending_up(df['price'], 3).iloc[-1])
+    df = pd.DataFrame({'price': [1, 2, 3, 2, 1, 2, 3, ]})
+    print(trending_up(df['price'], 5).iloc[-1])
+    print(trending_down(df['price'], 5).iloc[-1])

@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
 from src.common import read_price_df
+from src.finta.utils import trending_up, trending_down
 from src.indicators import wma
 from src.order_utils.order import OrderStatus, Order
 
@@ -70,9 +71,9 @@ def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = F
             sell_sl = buy_entry
 
             if momentum_signal:
-                if ohlc['momentum_signal'] == 1:
+                if ohlc['trend'] == 'up':
                     orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
-                elif ohlc['momentum_signal'] == -1:
+                elif ohlc['trend'] == 'down':
                     orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
 
             elif verify_ema:
@@ -100,7 +101,7 @@ def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = F
 
 if __name__ == "__main__":
     from_date = datetime(2010, 1, 1)
-    last_date = datetime(2020, 3, 31)
+    last_date = datetime(2020, 8, 4)
 
     logging.info(f'Reading date between {from_date} and {last_date}')
     ohlc = read_price_df(instrument='GBP_USD', granularity='H1', start=from_date, end=last_date)
@@ -123,7 +124,19 @@ if __name__ == "__main__":
         dfs.append(back_tester.run(ohlc, orders, print_stats=True, suffix=f'_ema_{period}'))
 
     for period in (30, 60, 120):
-        ohlc['momentum_signal'] = np.sign(ohlc['returns'].rolling(period).mean())
+        ohlc['trend_up'] = trending_up(ohlc['close'], period)
+        ohlc['trend_down'] = trending_down(ohlc['close'], period)
+
+        conditions = [
+            ohlc['trend_up'] & ~ohlc['trend_down'],
+            ~ohlc['trend_up'] & ohlc['trend_down'],
+            ~ohlc['trend_up'] & ~ohlc['trend_down'],
+        ]
+        choices = ['up', 'down', 'no trend']
+
+        ohlc['trend'] = np.select(conditions, choices, default='no trend')
+
+        # ohlc['momentum_signal'] = np.sign(ohlc['returns'].rolling(period).mean())
         orders = create_orders(ohlc, adj=5 / 10000, momentum_signal=True)
         dfs.append(back_tester.run(ohlc, orders, print_stats=True, suffix=f'_momentum_{period}'))
 
