@@ -127,11 +127,12 @@ def get_trades(env: str, name: str) -> List[dict]:
 
 def valid_env(env):
     if env == 'live':
-        RUNNING_ENV.load_config('live')
+        if RUNNING_ENV.is_practice():
+            RUNNING_ENV.load_config('live')
+    elif env == 'practice':
+        if RUNNING_ENV.is_live():
+            RUNNING_ENV.load_config('practice')
     else:
-        RUNNING_ENV.load_config('practice')
-
-    if env not in ('practice', 'live'):
         return {
                    'error': f'Invalid env {env}! Env mush be either practice or live'
                }, HTTPStatus.BAD_REQUEST

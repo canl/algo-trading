@@ -36,6 +36,12 @@ class Env(object):
         self.env = env
         self.config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'conf', f'oanda-{self.env}.cfg'))
 
+    def is_live(self):
+        return self.env == 'live'
+
+    def is_practice(self):
+        return self.env == 'practice'
+
     def __repr__(self):
         return f'Current in {self.env} environment'
 
