@@ -1,7 +1,7 @@
 from http import HTTPStatus
+from typing import List
 
 from flask import Blueprint, request
-from typing import List
 
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
@@ -110,6 +110,29 @@ def account_stats(env: str, name: str):
             'avg_loss_pips': round(avg_loss_pips, 0),
             'profit_factor': round(profit_factor, 2)
         }
+    }
+
+
+@api.route('/<env>/account/<name>/trend', methods=['GET'])
+def daily_trend(env: str, name: str):
+    valid_env(env)
+    am = AccountManager(account=name)
+    res = []
+    init_balance = am.initial_balance
+    for el in get_trades(env, name):
+        close_date = el.get('closeTime') or el.get('openTime')
+        close_date = close_date[:10]
+        pl = round(float(el['unrealizedPL']), 2) if el['state'] == 'OPEN' else round(float(el['realizedPL']), 2)
+        if res:
+            if res[-1]['date'] == close_date:
+                res[-1]['pl'] += pl
+            else:
+                res.append({'date': close_date, 'pl': res[-1]['pl'] + pl})
+        else:
+            res.append({'date': close_date, 'pl': init_balance + pl})
+    return {
+        'status': HTTPStatus.OK,
+        'data': res
     }
 
 
