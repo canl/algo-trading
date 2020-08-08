@@ -1,5 +1,5 @@
 <script>
-    const trendUrl = "/api/v1/{{ env }}/account/{{ account }}/trend?start_from=2170"
+    const trendUrl = "/api/v1/{{ env }}/account/{{ account }}/trend?start_from={{ start_from }}"
     const trendData = async () => {
         const response = await fetch(trendUrl);
         const json = await response.json();
@@ -30,6 +30,7 @@
         response.json().then(function (payload) {
             nav.textContent = '£' + numberWithCommas(payload.data.nav.toFixed(0))
             npl.textContent = '£' + numberWithCommas(payload.data.pl.toFixed(0))
+            payload.data.pl > 0 ? npl.classList.add("txt_success") : npl.classList.add("txt_danger")
             noTrades.textContent = numberWithCommas(payload.data.no_of_trades.toFixed(0))
             $('.dial').val(payload.data.win_percent * 100).trigger('change')
         });
@@ -75,7 +76,7 @@
                     <div class="h4 mb-0 text-primary" id="nav">£0</div>
                     <div class="small text-muted">Net Asset Value</div>
                     <hr>
-                    <div class="h4 mb-0 text-danger" id="npl">£0</div>
+                    <div class="h4 mb-0" id="npl">£0</div>
                     <div class="small text-muted">Net PL</div>
                     <hr>
                     <div class="h4 mb-0 text-warning" id="noTrades">0</div>
