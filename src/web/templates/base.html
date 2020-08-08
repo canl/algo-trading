@@ -35,14 +35,18 @@
     <link href="/css/styles.css" rel="stylesheet"/>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon-pw.ico') }}">
 
-    <script src="http://anthonyterrien.com/demo/knob/jquery.knob.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js"
+            integrity="sha512-NhRZzPdzMOMf005Xmd4JonwPftz4Pe99mRVcFeRDcdCtfjv46zPIi/7ZKScbpHD/V0HB1Eb+ZWigMqw94VUVaw=="
+            crossorigin="anonymous"></script>
 
 </head>
 <body class="sb-nav-fixed" id="page-top">
 <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark-blue">
     <a class="navbar-brand" href="{{ url_for('main.index') }}">
         <div class="sb-nav-link-icon"><img src="/favicon-pw.ico" alt="" width="23" height="22">
-            <strong>Algo</strong> Trading</div></a>
+            <strong>Algo</strong> Trading
+        </div>
+    </a>
     <button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" href="#"><i class="fas fa-bars"></i>
     </button>
     <!-- Navbar Search-->
