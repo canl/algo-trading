@@ -122,7 +122,7 @@ def daily_trend(env: str, name: str):
     for el in get_trades(env, name):
         close_date = el.get('closeTime') or el.get('openTime')
         close_date = close_date[:10]
-        pl = round(float(el['unrealizedPL']), 2) if el['state'] == 'OPEN' else round(float(el['realizedPL']), 2)
+        pl = float(el['unrealizedPL']) if el['state'] == 'OPEN' else float(el['realizedPL'])
         if res:
             if res[-1]['date'] == close_date:
                 res[-1]['pl'] += pl
@@ -132,7 +132,7 @@ def daily_trend(env: str, name: str):
             res.append({'date': close_date, 'pl': init_balance + pl})
     return {
         'status': HTTPStatus.OK,
-        'data': res
+        'data': [{'date': el['date'], 'pl': round(el['pl'], 2)} for el in res]
     }
 
 
