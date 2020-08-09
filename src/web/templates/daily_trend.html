@@ -18,6 +18,17 @@
     }
 
     printTrendChart()
+
+    const statsUrl = "/api/v1/{{env}}/account/{{account}}/stats?start_from={{ start_from }}"
+    fetch(statsUrl).then(function (response) {
+        response.json().then(function (payload) {
+            nav.textContent = '£' + numberWithCommas(payload.data.nav.toFixed(0))
+            npl.textContent = '£' + numberWithCommas(payload.data.pl.toFixed(0))
+            payload.data.pl > 0 ? npl.classList.add("txt_success") : npl.classList.add("txt_danger")
+            noTrades.textContent = numberWithCommas(payload.data.no_of_trades.toFixed(0))
+        });
+    });
+
 </script>
 
 <div class="card-header">
