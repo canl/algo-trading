@@ -112,12 +112,6 @@
     }
 </style>
 <script>
-    function numberWithCommas(x) {
-        let parts = x.toString().split(".");
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        return parts.join(".");
-    }
-
     const url = "/api/v1/{{env}}/account/{{account}}/stats?start_from={{ start_from }}"
     fetch(url).then(function (response) {
         response.json().then(function (payload) {

@@ -3,7 +3,16 @@
 {% block content %}
     <div class="container-fluid page-content">
         {% include 'account_stats.html' %}
-        {% include 'daily_trend.html' %}
+
+        <div class="row">
+            <div class="col-xl-3" style="margin-left: auto; margin-right: auto;">
+                {% include 'wl_knob.html' %}
+            </div>
+            <div class="col-xl-9">
+                {% include 'daily_trend.html' %}
+            </div>
+        </div>
+
         {% include 'open_trades.html' %}
         {% include 'closed_trades.html' %}
     </div>
