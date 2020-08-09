@@ -7,6 +7,7 @@ colorama==0.4.3
 cycler==0.10.0
 Flask==1.1.2
 Flask-Login==0.5.0
+Flask-SocketIO==4.3.1
 Flask-SQLAlchemy==2.4.3
 idna==2.9
 importlib-metadata==1.6.0
@@ -27,6 +28,8 @@ py==1.8.1
 pyparsing==2.4.6
 pytest==5.4.2
 python-dateutil==2.8.1
+python-engineio==3.13.1
+python-socketio==4.6.0
 pytz==2019.3
 requests==2.23.0
 six==1.14.0
