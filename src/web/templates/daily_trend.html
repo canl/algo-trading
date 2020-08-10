@@ -24,7 +24,7 @@
         response.json().then(function (payload) {
             nav.textContent = '£' + numberWithCommas(payload.data.nav.toFixed(0))
             npl.textContent = '£' + numberWithCommas(payload.data.pl.toFixed(0))
-            payload.data.pl > 0 ? npl.classList.add("txt_success") : npl.classList.add("txt_danger")
+            payload.data.pl > 0 ? npl.classList.add("text-success") : npl.classList.add("text-danger")
             noTrades.textContent = numberWithCommas(payload.data.no_of_trades.toFixed(0))
         });
     });
