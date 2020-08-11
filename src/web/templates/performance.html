@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
+    <script src="/js/account-stats.js"></script>
+    <script>renderStatsLabels("{{ env }}", "{{ account }}", "{{ start_from }}")</script>
     <div class="container-fluid page-content">
         {% include 'account_stats.html' %}
 
@@ -15,5 +16,6 @@
 
         {% include 'open_trades.html' %}
         {% include 'closed_trades.html' %}
+
     </div>
 {% endblock %}

@@ -1,11 +1,3 @@
-<script>
-    fetch("/api/v1/{{env}}/account/{{account}}/stats?start_from={{ start_from }}").then(function (response) {
-        response.json().then(function (payload) {
-            $('.dial').val(payload.data.win_percent * 100).trigger('change')
-        });
-    });
-</script>
-
 <div class="card-header">
     <i class="fas fa-chart-pie mr-1"></i>
     Win Loss Ratio%
