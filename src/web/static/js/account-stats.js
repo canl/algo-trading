@@ -18,7 +18,7 @@ function renderStatsLabels(env, account, startFrom) {
       if (payload.data.profit_factor > 2) {
         pf.classList.add("text-success")
       } else if (payload.data.profit_factor > 1) {
-        pf.classList.add("text-warn")
+        pf.classList.add("text-warning")
       } else {
         pf.classList.add("text-danger")
       }
