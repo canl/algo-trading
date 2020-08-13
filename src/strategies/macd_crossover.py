@@ -115,5 +115,5 @@ def backtest(instrument: str, start: str = None, end: str = None, maximum_order_
 
 
 if __name__ == '__main__':
-    test_orders = backtest('GBP_USD', start='2005-01-01', end='2020-05-30', maximum_order_size_in_one_side=100)
+    test_orders = backtest('GBP_USD', start='2017-01-01', end='2020-08-05', maximum_order_size_in_one_side=100)
     backtester.plot_chart([test_orders])
