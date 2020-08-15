@@ -30,6 +30,8 @@ class Env(object):
             return oanda_cfg[name]
         except KeyError:
             logger.fatal(f'Invalid account name: {name}')
+        except Exception as ex:
+            logger.fatal(f"Cannot load config for account {name} with error: {ex}")
 
     def load_config(self, env: str):
         logger.info(f"{'Switching' if self.config.has_section('oanda') else 'Initialize'} to {env} environment!")
