@@ -35,7 +35,7 @@ from datetime import timedelta
 import pandas as pd
 
 from src.backtester import BackTester
-from src.order_utils.order import Order, OrderSide, OrderStatus
+from src.orders.order import Order, OrderSide, OrderStatus
 
 logger = logging.getLogger(__name__)
 

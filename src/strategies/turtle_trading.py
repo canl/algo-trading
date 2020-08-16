@@ -72,7 +72,7 @@ import logging
 import pandas as pd
 
 from src.backtester import BackTester
-from src.order_utils.order import Order, OrderSide, OrderStatus
+from src.orders.order import Order, OrderSide, OrderStatus
 from src.position_calculator import pos_size
 
 logger = logging.getLogger(__name__)

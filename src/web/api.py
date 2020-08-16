@@ -5,8 +5,8 @@ from flask import Blueprint, request
 
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
-from src.order_utils.order import OrderSide
-from src.order_utils.order_manager import OrderManager
+from src.orders.order import OrderSide
+from src.orders.order_manager import OrderManager
 
 api = Blueprint('api', __name__)
 

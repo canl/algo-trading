@@ -4,7 +4,7 @@ from unittest import TestCase
 import pandas as pd
 
 from src.backtester import BackTester
-from src.order_utils.order import Order, OrderStatus, OrderSide
+from src.orders.order import Order, OrderStatus, OrderSide
 
 
 class TestBackTester(TestCase):

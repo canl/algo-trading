@@ -37,7 +37,7 @@ import numpy as np
 from src.backtester import BackTester
 from src.finta.ta import TA
 from src.common import read_price_df
-from src.order_utils.order import Order, OrderSide, OrderStatus
+from src.orders.order import Order, OrderSide, OrderStatus
 
 
 def generate_price_feed(instrument: str, start: datetime = None, end: datetime = None, persist_dir: str = 'c:/temp'):

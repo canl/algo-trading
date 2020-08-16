@@ -210,5 +210,5 @@ if __name__ == '__main__':
     # pass
     start = datetime.now() - timedelta(100)
     to = datetime.now() - timedelta(1)
-    price_df = read_price_df(instrument='EUR_USD', granularity='H4', start=start, end=to, max_count=20)
+    price_df = read_price_df(instrument='EUR_USD', granularity='S5', start=start, end=to, max_count=5000)
     print(price_df)

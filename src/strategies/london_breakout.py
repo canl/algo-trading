@@ -10,7 +10,7 @@ from src.backtester import BackTester
 from src.common import read_price_df
 from src.finta.utils import trending_up, trending_down
 from src.indicators import wma
-from src.order_utils.order import OrderStatus, Order
+from src.orders.order import OrderStatus, Order
 
 # Rules:
 #   1. Find the high and low between 00:00 to 08:00 UTC
@@ -100,8 +100,8 @@ def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = F
 
 
 if __name__ == "__main__":
-    from_date = datetime(2010, 1, 1)
-    last_date = datetime(2020, 8, 4)
+    from_date = datetime(2016, 1, 1)
+    last_date = datetime(2020, 8, 14)
 
     logging.info(f'Reading date between {from_date} and {last_date}')
     ohlc = read_price_df(instrument='GBP_USD', granularity='H1', start=from_date, end=last_date)
@@ -109,9 +109,9 @@ if __name__ == "__main__":
     ohlc['last_8_high'] = ohlc['high'].rolling(8).max()
     ohlc['last_8_low'] = ohlc['low'].rolling(8).min()
     ohlc['diff_pips'] = (ohlc['last_8_high'] - ohlc['last_8_low']) * 10000
-    ohlc['returns'] = np.log(ohlc['close'] / ohlc['close'].shift(1))
+    # ohlc['returns'] = np.log(ohlc['close'] / ohlc['close'].shift(1))
 
-    logging.info(ohlc[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips', 'returns']])
+    logging.info(ohlc[['open', 'high', 'low', 'close', 'last_8_high', 'last_8_low', 'diff_pips']])
     back_tester = BackTester(strategy='London Breakout')
     dfs = []
     for adj in (0, 5, 10,):

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src.common import read_price_df
-from src.order_utils.order import Order, OrderStatus
+from src.orders.order import Order, OrderStatus
 
 # Rules: Simple MA cross over strategy, can also be replaced with EMA
 #   1. Define short and long window

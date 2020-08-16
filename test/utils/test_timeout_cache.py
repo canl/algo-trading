@@ -1,7 +1,7 @@
 from unittest import TestCase
 import time
 
-from src.order_utils.order_manager import OrderManager
+from src.orders.order_manager import OrderManager
 from src.trading.london_breakout import LondonBreakout
 from src.utils.timeout_cache import cache
 

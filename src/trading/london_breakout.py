@@ -9,8 +9,8 @@ from src.common import api_request, transform
 from src.env import RUNNING_ENV
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify
-from src.order_utils.order import OrderSide
-from src.order_utils.order_manager import OrderManager
+from src.orders.order import OrderSide
+from src.orders.order_manager import OrderManager
 from src.position_calculator import pos_size
 
 # Rules:

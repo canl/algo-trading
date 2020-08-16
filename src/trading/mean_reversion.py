@@ -10,8 +10,8 @@ import pandas as pd
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
 from src.event import TickEvent
-from src.order_utils.order import OrderSide
-from src.order_utils.order_manager import OrderManager
+from src.orders.order import OrderSide
+from src.orders.order_manager import OrderManager
 from src.position_calculator import pos_size
 from src.pricing.poll_price_event import PollPriceEvent
 from src.pricing.stream_price_event import StreamPriceEvent

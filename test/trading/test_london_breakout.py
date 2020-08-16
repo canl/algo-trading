@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from src.account.account_manager import AccountManager
-from src.order_utils.order_manager import OrderManager
+from src.orders.order_manager import OrderManager
 from src.trading.london_breakout import LondonBreakout
 
 

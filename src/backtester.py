@@ -3,7 +3,7 @@ from functools import reduce
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from src.order_utils.order import OrderStatus
+from src.orders.order import OrderStatus
 
 
 class BackTester:

@@ -7,7 +7,7 @@ from oandapyV20.contrib.requests import StopOrderRequest, TakeProfitDetails, Sto
 from oandapyV20.endpoints import orders, trades
 
 from src.env import RUNNING_ENV
-from src.order_utils.order import OrderSide
+from src.orders.order import OrderSide
 
 logging.basicConfig(level=logging.DEBUG)
 
