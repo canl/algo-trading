@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.orders.order import Order, OrderStatus
 
 # Rules: Simple MA cross over strategy, can also be replaced with EMA

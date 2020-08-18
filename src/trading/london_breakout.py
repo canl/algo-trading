@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.account.account_manager import AccountManager
-from src.common import api_request, transform
+from src.pricer import api_request, transform
 from src.env import RUNNING_ENV
 from src.finta.utils import trending_up, trending_down
 from src.notifier import notify

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.common import read_price_df
+from src.pricer import read_price_df
 
 # Rules: Simple MA cross over strategy, can also be replaced with EMA
 #   1. Define short and long window

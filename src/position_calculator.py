@@ -1,7 +1,7 @@
 import logging
 from functools import lru_cache
 
-from src.common import api_request
+from src.pricer import api_request
 
 logger = logging.getLogger(__name__)
 

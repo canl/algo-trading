@@ -2,10 +2,10 @@ from unittest import TestCase
 
 from datetime import datetime, timedelta
 
-from src.common import get_candlesticks, build_params
+from src.pricer import get_candlesticks, build_params
 
 
-class TestCommon(TestCase):
+class TestPricer(TestCase):
     def test_get_candlesticks(self):
         no_of_days = 500
         test_cases = [

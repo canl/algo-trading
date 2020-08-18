@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.finta.ta import TA
 from src.orders.order import Order, OrderStatus, OrderSide
 

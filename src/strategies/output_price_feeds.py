@@ -4,7 +4,7 @@ from functools import partial
 
 import pandas as pd
 
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.finta.ta import TA
 
 logger = logging.getLogger(__name__)

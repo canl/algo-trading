@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 from matplotlib import pyplot as plt
-from src.common import read_price_df
+from src.pricer import read_price_df
 
 
 # we formalize the momentum strategy by telling Python to take the mean log return over the

@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 from sqlite3 import Error
 
-from src.common import read_price_df
+from src.pricer import read_price_df
 
 DB_FILE_PATH = 'db.sqlite'
 

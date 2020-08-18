@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.env import RUNNING_ENV
 from src.finta.ta import TA
 

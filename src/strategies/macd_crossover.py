@@ -36,7 +36,7 @@ import numpy as np
 
 from src.backtester import BackTester
 from src.finta.ta import TA
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.orders.order import Order, OrderSide, OrderStatus
 
 

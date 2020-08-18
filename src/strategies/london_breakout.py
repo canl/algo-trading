@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from src.backtester import BackTester
-from src.common import read_price_df
+from src.pricer import read_price_df
 from src.finta.utils import trending_up, trending_down
 from src.indicators import wma
 from src.orders.order import OrderStatus, Order
