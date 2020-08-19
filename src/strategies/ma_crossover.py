@@ -7,10 +7,22 @@ import pandas as pd
 from src.pricer import read_price_df
 from src.orders.order import Order, OrderStatus
 
+# Tested with real tick data
 # Rules: Simple MA cross over strategy, can also be replaced with EMA
-#   1. Define short and long window
-#   2. Buy: when short window cross over long window from bottom
-#   3. Sell: when short window cross over long window from top
+#   Define short and long window
+#   Long condition:
+#       when short window cross over long window from bottom
+#   TP:
+#       5 * atr
+#   Exit:
+#       when short window cross over long window from top
+#
+#   Short condition:
+#       when short window cross over long window from top
+#   TP:
+#       5 * atr
+#   Exit:
+#       when short window cross over long window from bottom
 
 
 short_window = 100
