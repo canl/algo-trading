@@ -8,7 +8,7 @@ from src.pricer import read_price_df
 from src.orders.order import Order, OrderStatus
 
 # Tested with real tick data
-# Rules: Simple MA cross over strategy, can also be replaced with EMA
+# Rules: Simple MA cross over strategy, can be used in either 1 hour or 1 day timeframe
 #   Define short and long window
 #   Long condition:
 #       when short window cross over long window from bottom
