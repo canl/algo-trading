@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from src.db.ohlc_to_db import connect_to_db
 from src.pricer import read_price_df
 from src.orders.order import Order, OrderStatus
 
@@ -82,15 +83,28 @@ def back_test():
     return orders
 
 
+def retrieve_price():
+    import os
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(basedir + "/../db", 'db.sqlite')
+    conn = connect_to_db(db_path)
+    cur = conn.cursor()
+    cur.execute("select * from gbp_ohlc where date(time) >= '2010-01-04'")
+
+    for row in cur.fetchall():
+        print(row)
+
+
 if __name__ == '__main__':
-    orders = back_test()
-    test_result = pd.DataFrame(
-        {
-            'date': [o.order_date for o in orders],
-            'pnl': [o.pnl for o in orders],
-        }
-    ).set_index('date')
-    test_result['cumsum'] = test_result['pnl'].cumsum()
-    print(test_result)
-    test_result['cumsum'].plot()
-    plt.show()
+    # orders = back_test()
+    # test_result = pd.DataFrame(
+    #     {
+    #         'date': [o.order_date for o in orders],
+    #         'pnl': [o.pnl for o in orders],
+    #     }
+    # ).set_index('date')
+    # test_result['cumsum'] = test_result['pnl'].cumsum()
+    # print(test_result)
+    # test_result['cumsum'].plot()
+    # plt.show()
+    retrieve_price()
