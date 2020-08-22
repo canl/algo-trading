@@ -60,8 +60,8 @@ def insert_values_to_table(table_name):
 
 
 def read_price():
-    start = datetime(2011, 1, 1, 0, 0, 0)
-    to = datetime(2015, 12, 31, 23, 59, 59)
+    start = datetime(2016, 1, 1, 0, 0, 0)
+    to = datetime(2020, 8, 20, 23, 59, 59)
     # to = datetime(2020, 8, 14, 23, 59, 59)
     price_df = read_price_df(instrument='GBP_USD', granularity='S5', start=start, end=to, max_count=4000)
     price_df.reset_index(level=0, inplace=True)
