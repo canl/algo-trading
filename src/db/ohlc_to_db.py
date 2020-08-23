@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 from sqlite3 import Error
-
+import pandas as pd
 from src.pricer import read_price_df
 
 DB_FILE_PATH = 'db.sqlite'
@@ -47,7 +47,7 @@ def insert_values_to_table(table_name):
                   'low      DECIMAL,'
                   'close    DECIMAL)')
 
-        df = read_price()
+        df = read_price(instrument=f"{table_name[:3]}_{table_name[3:6]}".upper())
 
         df.columns = get_column_names_from_db_table(c, table_name)
 
@@ -59,11 +59,11 @@ def insert_values_to_table(table_name):
         print('Connection to database failed')
 
 
-def read_price():
+def read_price(instrument: str = 'GBP_USD') -> pd.DataFrame:
     start = datetime(2016, 1, 1, 0, 0, 0)
     to = datetime(2020, 8, 20, 23, 59, 59)
     # to = datetime(2020, 8, 14, 23, 59, 59)
-    price_df = read_price_df(instrument='GBP_USD', granularity='S5', start=start, end=to, max_count=4000)
+    price_df = read_price_df(instrument=instrument, granularity='S5', start=start, end=to, max_count=4000)
     price_df.reset_index(level=0, inplace=True)
     price_df['time'] = price_df['time'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
     return price_df
@@ -90,4 +90,5 @@ def get_column_names_from_db_table(sql_cursor, table_name):
 
 
 if __name__ == '__main__':
-    insert_values_to_table('gbp_ohlc')
+    # pattern: currency_pair _ ohlc
+    insert_values_to_table('eurusd_ohlc')
