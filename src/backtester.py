@@ -68,12 +68,14 @@ class BackTester:
 
         return pd.DataFrame(performance).set_index('time')
 
-    def print_stats(self, orders):
+    @staticmethod
+    def print_stats(orders) -> dict:
+        pip_size = 10000
         no_of_wins = len([o for o in orders if o.outcome == 'win'])
         no_of_losses = len([o for o in orders if o.outcome == 'loss'])
         avg_win = sum(o.pnl for o in orders if o.outcome == 'win') / no_of_wins if no_of_wins else 0
         avg_loss = sum(o.pnl for o in orders if o.outcome == 'loss') / no_of_losses if no_of_losses else 0
-        total_pips = sum(o.pnl for o in orders) * self.lot_size
+        total_pips = sum(o.pnl for o in orders) * pip_size
         win_percent = round(no_of_wins / (no_of_wins + no_of_losses), 4)
         win_loss_ratio = abs(round(avg_win / avg_loss, 2)) if avg_loss else 0
         expectancy = round(win_percent * win_loss_ratio - (1 - win_percent), 4)
@@ -86,8 +88,8 @@ class BackTester:
             'cancelled': len([el for el in orders if el.status == OrderStatus.CANCELLED]),
             'wins': no_of_wins,
             'losses': no_of_losses,
-            'average win': f'{round(avg_win * self.lot_size, 2)} pips',
-            'average loss': f'{round(avg_loss * self.lot_size, 2)} pips',
+            'average win': f'{round(avg_win * pip_size, 2)} pips',
+            'average loss': f'{round(avg_loss * pip_size, 2)} pips',
             'win rate': f'{round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2)}%',
             'win / loss ratio': abs(round(avg_win / avg_loss, 2)) if avg_loss else 0,
             'total pnl': round(total_pips, 4),
@@ -96,6 +98,8 @@ class BackTester:
 
         for k, v in stats.items():
             print(f'{k}: {v}')
+
+        return stats
 
     @staticmethod
     def output_csv(orders: list, path=r'C:\temp\order_performs.csv'):

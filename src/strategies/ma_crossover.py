@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from src.backtester import BackTester
 from src.db.ohlc_to_db import connect_to_db
 from src.indicators import average_true_range, exponential_moving_average
 from src.orders.order import Order, OrderStatus, OrderSide
@@ -96,24 +97,24 @@ class MaTrader:
                 logger.exception(f'Error while processing item: [{ex}]')
 
     def process_event(self, ohlc):
-        filled_order = next((o for o in self.orders if o.is_open), None)
         if self.process_index < len(self.signals) and ohlc.time > self.signals[self.process_index]['time']:
+            filled_order = next((o for o in self.orders if o.is_open), None)
             if filled_order:
                 if filled_order.is_long:
                     # close long filled order
                     if ohlc.open >= filled_order.entry:
-                        logger.info(f"Closing long order when crossover with profit: {(ohlc.open - filled_order.entry) * 10000} pips")
+                        logger.info(f"Closing long order when crossover with profit: {(ohlc.open - filled_order.entry) * 10000} pips at [{ohlc.time}]")
                         filled_order.close_with_win(ohlc.time, ohlc.open)
                     else:
-                        logger.info(f"Closing long order when crossover with loss: {(ohlc.open - filled_order.entry) * 10000} pips")
+                        logger.info(f"Closing long order when crossover with loss: {(ohlc.open - filled_order.entry) * 10000} pips at [{ohlc.time}]")
                         filled_order.close_with_loss(ohlc.time, ohlc.open)
                 else:
                     # close short filled order
                     if ohlc.open <= filled_order.entry:
-                        logger.info(f"Closing short order when crossover with profit: {(filled_order.entry - ohlc.open) * 10000} pips")
+                        logger.info(f"Closing short order when crossover with profit: {(filled_order.entry - ohlc.open) * 10000} pips at [{ohlc.time}]")
                         filled_order.close_with_win(ohlc.time, ohlc.open)
                     else:
-                        logger.info(f"Closing short order when crossover with loss: {(filled_order.entry - ohlc.open) * 10000} pips")
+                        logger.info(f"Closing short order when crossover with loss: {(filled_order.entry - ohlc.open) * 10000} pips at [{ohlc.time}]")
                         filled_order.close_with_loss(ohlc.time, ohlc.open)
 
             is_long = self.signals[self.process_index]['positions'] == 1
@@ -126,21 +127,22 @@ class MaTrader:
             ))
             self.process_index += 1
 
+        filled_order = next((o for o in self.orders if o.is_open), None)
         if filled_order:
             if filled_order.is_long:
                 # buy order, low >= tp
                 if ohlc.low >= filled_order.tp:
-                    logger.info(f"Closing long order when profit target met: {(filled_order.tp - filled_order.entry) * 10000} pips")
+                    logger.info(f"Closing long order when profit target met: {(filled_order.tp - filled_order.entry) * 10000} pips at [{ohlc.time}]")
                     filled_order.close_with_win(ohlc[0], filled_order.tp)
             else:
                 # sell order, high >= tp
                 if ohlc.high <= filled_order.tp:
-                    logger.info(f"Closing short order when profit target met: {(filled_order.entry - filled_order.tp) * 10000} pips")
+                    logger.info(f"Closing short order when profit target met: {(filled_order.entry - filled_order.tp) * 10000} pips at [{ohlc.time}]")
                     filled_order.close_with_win(ohlc[0], filled_order.tp)
 
 
 if __name__ == '__main__':
-    start = datetime(2019, 1, 1, 0, 0, 0)
+    start = datetime(2010, 1, 1, 0, 0, 0)
     end = datetime(2020, 7, 31, 0, 0, 0)
     signals = generate_signals(start_date=start, end_date=end)
     signals.index = signals.index.strftime('%Y-%m-%d %H:%M:%S')
@@ -161,6 +163,8 @@ if __name__ == '__main__':
 
     ma.running = False
 
+    BackTester().print_stats(ma.orders)
+
     stats = [
         {
             'open_time': o.order_date,
@@ -168,7 +172,7 @@ if __name__ == '__main__':
             'entry': o.entry,
             'sl': o.sl,
             'tp': o.tp,
-            'pl': o.pnl * 10000,
+            'pnl': o.pnl * 10000,
             'close_time': o.last_update,
         }
         for o in ma.orders
@@ -176,8 +180,10 @@ if __name__ == '__main__':
     df = pd.DataFrame(stats)
 
     # df.to_csv(r'C:\temp\stats.csv')
-    chart_df = df[["open_time", "pl"]]
+    plt.style.use('ggplot')
+    chart_df = df[["open_time", "pnl"]]
     chart_df = chart_df.set_index('open_time')
-    print(chart_df)
     chart_df.cumsum().plot()
+    plt.xticks(rotation=45)
+    plt.subplots_adjust(bottom=0.2)
     plt.show()
