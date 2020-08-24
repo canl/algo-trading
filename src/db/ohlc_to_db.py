@@ -60,8 +60,8 @@ def insert_values_to_table(table_name):
 
 
 def read_price(instrument: str = 'GBP_USD') -> pd.DataFrame:
-    start = datetime(2016, 1, 1, 0, 0, 0)
-    to = datetime(2020, 8, 20, 23, 59, 59)
+    start = datetime(2005, 1, 1, 0, 0, 0)
+    to = datetime(2009, 12, 31, 23, 59, 59)
     # to = datetime(2020, 8, 14, 23, 59, 59)
     price_df = read_price_df(instrument=instrument, granularity='S5', start=start, end=to, max_count=4000)
     price_df.reset_index(level=0, inplace=True)
@@ -91,4 +91,4 @@ def get_column_names_from_db_table(sql_cursor, table_name):
 
 if __name__ == '__main__':
     # pattern: currency_pair _ ohlc
-    insert_values_to_table('eurusd_ohlc')
+    insert_values_to_table('gbpusd_ohlc')
