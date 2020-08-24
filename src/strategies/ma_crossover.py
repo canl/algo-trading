@@ -65,7 +65,7 @@ def retrieve_price(start_date: [datetime, date], end_date: [date, datetime]):
     cur = conn.cursor()
     s = start_date.strftime('%Y-%m-%d')
     e = end_date.strftime('%Y-%m-%d')
-    cur.execute("select * from gbp_ohlc where date(time) between ? and ?", (s, e))
+    cur.execute("select * from gbpusd_ohlc where date(time) between ? and ?", (s, e))
 
     for row in cur.fetchall():
         yield row
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     ]
     df = pd.DataFrame(stats)
 
-    # df.to_csv(r'C:\temp\stats.csv')
+    df.to_csv(r'C:\temp\stats.csv')
     plt.style.use('ggplot')
     chart_df = df[["open_time", "pnl"]]
     chart_df = chart_df.set_index('open_time')
