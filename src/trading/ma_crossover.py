@@ -1,3 +1,4 @@
+import argparse
 import logging
 
 import numpy as np
@@ -7,6 +8,7 @@ from src.account.account_manager import AccountManager
 from src.indicators import exponential_moving_average, average_true_range
 from src.orders.order import OrderSide
 from src.orders.order_manager import OrderManager
+from src.position_calculator import pos_size
 from src.pricer import api_request, transform
 
 # Rules: Simple MA cross over strategy, can be used in either 1 hour or 1 day timeframe
@@ -31,19 +33,21 @@ logger = logging.getLogger(__name__)
 
 
 class MaTrader:
-    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64):
+    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64, sl_pips: int = 50):
         """
         Moving average cross over strategy
         :param account: account id
         :param instruments: trading instruments
         :param short_win: define short moving average
-        :param long_win:  define long moving average
+        :param long_win: define long moving average
+        :param sl_pips: stop loss pips for calculating position size. Default to 50.
         """
         self.am = AccountManager(account)
         self.om = OrderManager(account)
         self.instruments = instruments
         self.short_win = short_win
         self.long_win = long_win
+        self.sl_pips = sl_pips
 
     def run(self):
         for instrument in self.instruments:
@@ -51,7 +55,7 @@ class MaTrader:
             df = self.check_for_signals(instrument=instrument)
             pd.set_option('display.max_columns', None)
             pd.set_option('display.width', 200)
-            logger.info(df.tail(10))
+            logger.info(f"\n{df.tail(10)}")
 
             last_pos = df['position'].iloc[-1]
             if last_pos == 0:
@@ -66,12 +70,19 @@ class MaTrader:
 
             last_atr = df['atr'].iloc[-1]
             last_close = df['close'].iloc[-1]
+            units = self.get_pos_size(instrument=instrument)
+            one_lot = 100000
             if last_pos == 1:
                 logger.info(f"Placing long market order for {instrument}")
-                self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=100000, tp=last_close + 5 * last_atr)
+                self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
             else:
                 logger.info(f"Placing short market order for {instrument}")
-                self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=100000, tp=last_close - 5 * last_atr)
+                self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
+
+    def get_pos_size(self, instrument):
+        nav = int(float(self.am.nav))
+        # Default sl pips to 50
+        return pos_size(account_balance=nav, risk_pct=0.02, sl_pips=50, instrument=instrument, account_ccy='GBP')
 
     def check_for_signals(self, instrument: str) -> pd.DataFrame:
         param = {
@@ -95,6 +106,14 @@ class MaTrader:
 
 
 if __name__ == '__main__':
-    trader = MaTrader(account='primary', instruments=['GBP_USD'])
-    trader.check_for_signals(instrument='GBP_USD')
+    parser = argparse.ArgumentParser(description="Moving Average Crossover Trading Strategy")
+    parser.add_argument('--liveRun', help="Flag to indicate dry or live run", action='store_true', default=False)
+    parser.add_argument('--env', action="store", dest="env", default='practice')
+    parser.add_argument('--accountName', action="store", dest='accountName', default='primary')
+
+    args = parser.parse_args()
+
+    TRADED_INSTRUMENTS = ['GBP_USD']
+
+    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS)
     trader.run()
