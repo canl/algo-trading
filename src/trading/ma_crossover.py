@@ -11,29 +11,33 @@ from src.orders.order_manager import OrderManager
 from src.position_calculator import pos_size
 from src.pricer import api_request, transform
 
-# Rules: Simple MA cross over strategy, can be used in either 1 hour or 1 day timeframe
-# Maximum one oder allowed
-#   Define short and long window
-#
-#   Long condition:
-#       when short window cross over long window from bottom
-#   TP:
-#       5 * atr
-#   Exit:
-#       when short window cross over long window from top
-#
-#   Short condition:
-#       when short window cross over long window from top
-#   TP:
-#       5 * atr
-#   Exit:
-#       when short window cross over long window from bottom
-
 logger = logging.getLogger(__name__)
 
 
 class MaTrader:
-    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64, sl_pips: int = 50):
+    """
+    Simple MA cross over strategy, can be used in either 1 hour or 1 day timeframe
+
+    Rules:
+        Maximum one oder allowed
+          Define short and long window
+
+          Long condition:
+              when short window cross over long window from bottom
+          TP:
+              5 * atr
+          Exit:
+              when short window cross over long window from top
+
+          Short condition:
+              when short window cross over long window from top
+          TP:
+              5 * atr
+          Exit:
+              when short window cross over long window from bottom
+    """
+
+    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64, sl_pips: int = 50, live_run: bool = False):
         """
         Moving average cross over strategy
         :param account: account id
@@ -41,6 +45,7 @@ class MaTrader:
         :param short_win: define short moving average
         :param long_win: define long moving average
         :param sl_pips: stop loss pips for calculating position size. Default to 50.
+        :param live_run: live or dry run, default to false
         """
         self.am = AccountManager(account)
         self.om = OrderManager(account)
@@ -48,6 +53,7 @@ class MaTrader:
         self.short_win = short_win
         self.long_win = long_win
         self.sl_pips = sl_pips
+        self.live_run = live_run
 
     def run(self):
         for instrument in self.instruments:
@@ -62,22 +68,25 @@ class MaTrader:
                 logger.info("No signal detected!")
                 return
 
-            logger.info(f"Closing open trade for {instrument}...")
-            matched_orders = self.om.get_open_trades()
-            matched_instrument = [o for o in matched_orders if o.get('instrument') == instrument]
-            for trade in matched_instrument:
-                self.om.close_trade(trade['id'])
+            if self.live_run:
+                logger.info(f"Closing open trade for {instrument}...")
+                matched_orders = self.om.get_open_trades()
+                matched_instrument = [o for o in matched_orders if o.get('instrument') == instrument]
+                for trade in matched_instrument:
+                    self.om.close_trade(trade['id'])
 
-            last_atr = df['atr'].iloc[-1]
-            last_close = df['close'].iloc[-1]
-            units = self.get_pos_size(instrument=instrument)
-            one_lot = 100000
-            if last_pos == 1:
-                logger.info(f"Placing long market order for {instrument}")
-                self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
+                last_atr = df['atr'].iloc[-1]
+                last_close = df['close'].iloc[-1]
+                units = self.get_pos_size(instrument=instrument)
+                one_lot = 100000
+                if last_pos == 1:
+                    logger.info(f"Placing long market order for {instrument}")
+                    self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
+                else:
+                    logger.info(f"Placing short market order for {instrument}")
+                    self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
             else:
-                logger.info(f"Placing short market order for {instrument}")
-                self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
+                logger.info("Dry run only, no order will be placed")
 
     def get_pos_size(self, instrument):
         nav = int(float(self.am.nav))
@@ -115,5 +124,5 @@ if __name__ == '__main__':
 
     TRADED_INSTRUMENTS = ['GBP_USD']
 
-    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS)
+    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, live_run=args.liveRun)
     trader.run()
