@@ -3,7 +3,7 @@ import logging
 from typing import Union
 
 from oandapyV20 import V20Error
-from oandapyV20.contrib.requests import StopOrderRequest, TakeProfitDetails, StopLossDetails, LimitOrderRequest
+from oandapyV20.contrib.requests import StopOrderRequest, TakeProfitDetails, StopLossDetails, LimitOrderRequest, MarketOrderRequest
 from oandapyV20.endpoints import orders, trades
 
 from src.env import RUNNING_ENV
@@ -26,6 +26,15 @@ class OrderType:
 class OrderManager:
     def __init__(self, account):
         self.account_id = RUNNING_ENV.get_account(account)
+
+    def place_market_order(self, instrument: str, side: str, units: Union[float, int], tp: float = None, sl: float = None):
+        order_request = MarketOrderRequest(
+            instrument=instrument,
+            units=units * (1 if side == OrderSide.LONG else -1),
+            takeProfitOnFill=TakeProfitDetails(price=tp).data if tp else None,
+            stopLossOnFill=StopLossDetails(price=sl).data if sl else None,
+        )
+        self._submit_order_request(order_request, self.account_id)
 
     def place_limit_order(self, instrument: str, side: str, units: Union[float, int], price: float, tp: float, sl: float, expiry: str = None):
         order_request = LimitOrderRequest(
@@ -80,7 +89,29 @@ class OrderManager:
             logging.info(json.dumps(rv, indent=2))
             return rv.get('orders')
 
-    def get_open_trades(self):
+    def close_trade(self, trade_id: str, data: dict = None):
+        """
+        Close (partially or fully) a specific open Trade in an Account.
+        :param trade_id: open trade id
+        :param data: use this to close a trade partially. Check developer.oanda.com for details.
+        :return:
+        """
+        r = trades.TradeClose(accountID=self.account_id, tradeID=trade_id, data=data)
+        try:
+            # create close trade request
+            logging.info(f"Closing trade: [{trade_id}]")
+            rv = RUNNING_ENV.api.request(r)
+        except V20Error as err:
+            logging.error(r.status_code, err)
+        else:
+            logging.info(json.dumps(rv, indent=2))
+            return rv.get('trades')
+
+    def get_open_trades(self) -> list:
+        """
+        Get all open trades from the account
+        :return: list of open trades
+        """
         r = trades.OpenTrades(self.account_id)
         try:
             rv = RUNNING_ENV.api.request(r)
@@ -110,7 +141,7 @@ class OrderManager:
 if __name__ == '__main__':
     from datetime import datetime, timezone, timedelta
 
-    manager = OrderManager('mt4')
+    manager = OrderManager('primary')
 
     print(manager.get_trades())
     print(manager.get_open_trades())
@@ -123,3 +154,8 @@ if __name__ == '__main__':
 
     for o in manager.get_pending_orders():
         manager.cancel_order(order_id=o.get('id'))
+
+    # manager.place_market_order("GBP_USD", side=OrderSide.LONG, units=100, tp=1.35)
+    # open_trades = [t for t in manager.get_open_trades() if t['instrument'] == 'GBP_USD']
+    # for t in open_trades:
+    #     manager.close_trade(t['id'])

@@ -96,9 +96,8 @@ class BackTester:
             'expectancy': expectancy
         }
 
-        for k, v in stats.items():
-            print(f'{k}: {v}')
-
+        import json
+        print(json.dumps(stats, indent=2))
         return stats
 
     @staticmethod
