@@ -76,7 +76,7 @@ class BackTester:
         avg_win = sum(o.pnl for o in orders if o.outcome == 'win') / no_of_wins if no_of_wins else 0
         avg_loss = sum(o.pnl for o in orders if o.outcome == 'loss') / no_of_losses if no_of_losses else 0
         total_pips = sum(o.pnl for o in orders) * pip_size
-        win_percent = round(no_of_wins / (no_of_wins + no_of_losses), 4)
+        win_percent = 0 if no_of_wins == 0 else round(no_of_wins / (no_of_wins + no_of_losses), 4)
         win_loss_ratio = abs(round(avg_win / avg_loss, 2)) if avg_loss else 0
         expectancy = round(win_percent * win_loss_ratio - (1 - win_percent), 4)
 
@@ -90,7 +90,7 @@ class BackTester:
             'losses': no_of_losses,
             'average win': f'{round(avg_win * pip_size, 2)} pips',
             'average loss': f'{round(avg_loss * pip_size, 2)} pips',
-            'win rate': f'{round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2)}%',
+            'win rate': 0 if no_of_wins == 0 else f'{round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2)}%',
             'win / loss ratio': abs(round(avg_win / avg_loss, 2)) if avg_loss else 0,
             'total pnl': round(total_pips, 4),
             'expectancy': expectancy

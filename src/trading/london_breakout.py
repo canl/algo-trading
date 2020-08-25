@@ -130,7 +130,7 @@ class LondonBreakout:
         if datetime.today().weekday() in (5, 6):
             logging.info("Do not run over the weekend!")
             return
-        # 5 pips adjustment for TP
+
         param = {
             "count": 120,
             "granularity": "H1"
@@ -153,6 +153,7 @@ class LondonBreakout:
         logging.info(f'Calculating position size for sl pips {diff}')
         position_size = pos_size(account_balance=10000, risk_pct=0.025, sl_pips=diff * 10000, instrument='GBP_USD')
 
+        # 5 pips adjustment for TP
         long_tp = last_high + diff + ADJUSTMENT
         short_tp = last_low - diff - ADJUSTMENT
         logging.info(f'Placing {position_size} lot buy order. Price: {last_high}, TP: {long_tp}, SL: {last_low}')

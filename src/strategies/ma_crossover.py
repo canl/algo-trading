@@ -142,6 +142,8 @@ class MaTrader:
 
 
 if __name__ == '__main__':
+    import json
+
     start = datetime(2010, 1, 1, 0, 0, 0)
     end = datetime(2020, 7, 31, 0, 0, 0)
     signals = generate_signals(start_date=start, end_date=end)
@@ -149,7 +151,7 @@ if __name__ == '__main__':
     signals.reset_index(level=0, inplace=True)
 
     crossover_signals = signals[signals.positions.isin([-1, 1])].to_dict('records')
-    print(crossover_signals)
+    print(json.dumps(crossover_signals, indent=2))
 
     events = queue.Queue()
     ma = MaTrader(events=events, signals=crossover_signals, running=True)
