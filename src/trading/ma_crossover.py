@@ -91,7 +91,7 @@ class MaTrader:
     def get_pos_size(self, instrument):
         nav = int(float(self.am.nav))
         # Default sl pips to 50
-        return pos_size(account_balance=nav, risk_pct=0.02, sl_pips=50, instrument=instrument, account_ccy='GBP')
+        return pos_size(account_balance=nav, risk_pct=0.02, sl_pips=self.sl_pips, instrument=instrument, account_ccy='GBP')
 
     def check_for_signals(self, instrument: str) -> pd.DataFrame:
         param = {
@@ -124,5 +124,5 @@ if __name__ == '__main__':
 
     TRADED_INSTRUMENTS = ['GBP_USD']
 
-    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, live_run=args.liveRun)
+    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, sl_pips=40, live_run=args.liveRun)
     trader.run()
