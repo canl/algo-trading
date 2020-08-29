@@ -91,4 +91,4 @@ def get_column_names_from_db_table(sql_cursor, table_name):
 
 if __name__ == '__main__':
     # pattern: currency_pair _ ohlc
-    insert_values_to_table('gbpusd_ohlc')
+    insert_values_to_table('eurusd_ohlc')

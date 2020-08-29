@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 OHLC = namedtuple("OHLC", "time open high low close")
 
 
-def generate_signals(instrument: str = "GBP_USD", granularity: str = "H1", short_win: int = 16, long_win: int = 64,
+def generate_signals(instrument: str = "EUR_USD", granularity: str = "H1", short_win: int = 16, long_win: int = 64,
                      start_date: datetime = datetime(2019, 1, 1, 0, 0, 0), end_date: datetime = datetime(2020, 1, 1, 0, 0, 0)) -> pd.DataFrame:
     df = read_price_df(instrument=instrument, granularity=granularity, start=start_date, end=end_date)
     df['ema_short'] = exponential_moving_average(df, short_win)
@@ -57,7 +57,14 @@ def generate_signals(instrument: str = "GBP_USD", granularity: str = "H1", short
     return df
 
 
-def retrieve_price(start_date: [datetime, date], end_date: [date, datetime]):
+def read_db_price(instrument: str, start_date: [datetime, date], end_date: [date, datetime]):
+    """
+    Read historical price
+    :param instrument: Currency pair: GBP_USD, EUR_USD etc.
+    :param start_date: start
+    :param end_date: end
+    :return:
+    """
     import os
     basedir = os.path.abspath(os.path.dirname(__file__))
     db_path = os.path.join(basedir + "/../db", 'db.sqlite')
@@ -65,31 +72,32 @@ def retrieve_price(start_date: [datetime, date], end_date: [date, datetime]):
     cur = conn.cursor()
     s = start_date.strftime('%Y-%m-%d')
     e = end_date.strftime('%Y-%m-%d')
-    cur.execute("select * from gbpusd_ohlc where date(time) between ? and ?", (s, e))
+    table_name = f"{instrument.replace('_', '').lower()}_ohlc"
+    cur.execute(f"select * from {table_name} where date(time) between ? and ?", (s, e))
 
     for row in cur.fetchall():
         yield row
 
 
 class MaTrader:
-    def __init__(self, events: queue.Queue, signals: list, running: bool = False):
-        self.events = events
+    def __init__(self, instrument: str, price_events: queue.Queue, signals: list, running: bool = False):
+        self.price_events = price_events
         self.orders = []
         self.signals = signals
         self.process_index = 0
         self.running = running
+        self.instrument = instrument
 
     def run(self):
         while self.running:
             try:
-                item = self.events.get(timeout=0.01)
+                item = self.price_events.get(timeout=0.01)
                 if item is None:
                     continue
-
                 try:
                     self.process_event(item)
                 finally:
-                    self.events.task_done()
+                    self.price_events.task_done()
 
             except queue.Empty:
                 pass
@@ -120,6 +128,7 @@ class MaTrader:
             is_long = self.signals[self.process_index]['positions'] == 1
             self.orders.append(Order(
                 order_date=ohlc.time,
+                instrument=self.instrument,
                 side=OrderSide.LONG if is_long else OrderSide.SHORT,
                 entry=ohlc.open,
                 tp=ohlc.open + crossover_signals[self.process_index]['atr'] * 5 * (1 if is_long else -1),  # 5 times ATR
@@ -144,9 +153,11 @@ class MaTrader:
 if __name__ == '__main__':
     import json
 
-    start = datetime(2010, 1, 1, 0, 0, 0)
+    ccy_pair = "EUR_USD"
+    start = datetime(2020, 1, 1, 0, 0, 0)
     end = datetime(2020, 7, 31, 0, 0, 0)
-    signals = generate_signals(start_date=start, end_date=end)
+
+    signals = generate_signals(instrument=ccy_pair, start_date=start, end_date=end)
     signals.index = signals.index.strftime('%Y-%m-%d %H:%M:%S')
     signals.reset_index(level=0, inplace=True)
 
@@ -154,9 +165,9 @@ if __name__ == '__main__':
     print(json.dumps(crossover_signals, indent=2))
 
     events = queue.Queue()
-    ma = MaTrader(events=events, signals=crossover_signals, running=True)
+    ma = MaTrader(instrument=ccy_pair, price_events=events, signals=crossover_signals, running=True)
 
-    for p in retrieve_price(start_date=start, end_date=end):
+    for p in read_db_price(instrument=ccy_pair, start_date=start, end_date=end):
         events.put(OHLC(p[0], p[1], p[2], p[3], p[4]))
 
     threading.Thread(target=ma.run).start()

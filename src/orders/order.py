@@ -15,11 +15,12 @@ class OrderSide:
 
 
 class Order(object):
-    def __init__(self, order_date, side, entry, sl=None, tp=None, pnl=0, status=OrderStatus.PENDING, last_update=None, units=100000):
+    def __init__(self, order_date, side, instrument, entry, sl=None, tp=None, pnl=0, status=OrderStatus.PENDING, last_update=None, units=100000):
         """
         Order for execution
         :param order_date: Datetime
         :param side: Long or Short
+        :param instrument: currency pair
         :param entry: float
         :param sl: float
         :param tp: float
@@ -31,6 +32,7 @@ class Order(object):
         self.id = ''.join(random.choice('0123456789ABCDEF') for i in range(6))  # not unique but should be good enough
         self.order_date = order_date
         self.side = side
+        self.instrument = instrument
         self.entry = entry
         self.sl = sl
         self.tp = tp
@@ -103,7 +105,7 @@ class Order(object):
     def __repr__(self):
         additional_info = f' with stop loss {self.sl} / take profit {self.tp}' if self.sl or self.tp else ''
         return f'<{self.id}: ' \
-               f'{self.order_date} {self.side} {self.units} units @ {self.entry}{additional_info}. ' \
+               f'{self.order_date} {self.side} {self.instrument} {self.units} units @ {self.entry}{additional_info}. ' \
                f'Status is {self.status} with pnl {self.pnl}. Last updated @ {self.last_update}>'
 
     __str__ = __repr__

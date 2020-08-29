@@ -24,12 +24,13 @@ class TestBackTester(TestCase):
 def create_dummy_orders(df):
     df['ma_12'] = df.close.rolling(12).mean()
     df['ma_50'] = df.close.rolling(50).mean()
+    ccy_pair = 'GBP_USD'
     orders = []
     for time, ohlc in df.to_dict('index').items():
         if ohlc['open'] < ohlc['ma_12'] < ohlc['close'] and ohlc['low'] > ohlc['ma_50']:
-            orders.append(Order(time, OrderSide.LONG, ohlc['close'], sl=ohlc['close'] - 0.01, tp=ohlc['close'] + 0.02, status=OrderStatus.FILLED))
+            orders.append(Order(time, OrderSide.LONG, ccy_pair, ohlc['close'], sl=ohlc['close'] - 0.01, tp=ohlc['close'] + 0.02, status=OrderStatus.FILLED))
         elif ohlc['close'] < ohlc['ma_12'] < ohlc['open'] and ohlc['high'] < ohlc['ma_50']:
-            orders.append(Order(time, OrderSide.SHORT, ohlc['close'], sl=ohlc['close'] + 0.01, tp=ohlc['close'] - 0.02, status=OrderStatus.FILLED))
+            orders.append(Order(time, OrderSide.SHORT, ccy_pair, ohlc['close'], sl=ohlc['close'] + 0.01, tp=ohlc['close'] - 0.02, status=OrderStatus.FILLED))
 
     return orders
 

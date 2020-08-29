@@ -10,7 +10,7 @@ from src.backtester import BackTester
 from src.pricer import read_price_df
 from src.finta.utils import trending_up, trending_down
 from src.indicators import wma
-from src.orders.order import OrderStatus, Order
+from src.orders.order import OrderStatus, Order, OrderSide
 
 # Rules:
 #   1. Find the high and low between 00:00 to 08:00 UTC
@@ -72,18 +72,18 @@ def create_orders(price_df: pd.DataFrame, adj: float = 0.0, verify_ema: bool = F
 
             if momentum_signal:
                 if ohlc['trend'] == 'up':
-                    orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, OrderSide.LONG, 'GBP_USD', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
                 elif ohlc['trend'] == 'down':
-                    orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, OrderSide.SHORT, 'GBP_USD', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
 
             elif verify_ema:
                 if ohlc['low'] >= ohlc['ema']:
-                    orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, OrderSide.LONG, 'GBP_USD', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
                 elif ohlc['high'] <= ohlc['ema']:
-                    orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                    orders.append(Order(time, OrderSide.SHORT, 'GBP_USD', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
             else:
-                orders.append(Order(time, 'long', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
-                orders.append(Order(time, 'short', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
+                orders.append(Order(time, OrderSide.LONG, 'GBP_USD', buy_entry, buy_sl, buy_tp, 0, OrderStatus.PENDING))
+                orders.append(Order(time, OrderSide.SHORT, 'GBP_USD', sell_entry, sell_sl, sell_tp, 0, OrderStatus.PENDING))
 
         for order in orders:
             # Try to fill pending orders

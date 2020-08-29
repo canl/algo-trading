@@ -56,7 +56,7 @@ def sample_data(instrument: str, start: datetime, end: datetime, short_window: i
     return price_feed
 
 
-def create_orders(ohlc: pd.DataFrame, sl_multiplier: float, tp_multiplier: float) -> list:
+def create_orders(instrument: str, ohlc: pd.DataFrame, sl_multiplier: float, tp_multiplier: float) -> list:
     price_data = ohlc.reset_index().to_dict('records')
     orders = []
     next_buy = False
@@ -64,13 +64,13 @@ def create_orders(ohlc: pd.DataFrame, sl_multiplier: float, tp_multiplier: float
     for el in price_data:
         if next_buy:
             orders.append(
-                Order(order_date=el['time'], side=OrderSide.LONG, entry=el['open'], sl=el['open'] - el['atr'] * sl_multiplier,
-                      tp=el['open'] + el['atr'] * tp_multiplier, status=OrderStatus.FILLED))
+                Order(order_date=el['time'], side=OrderSide.LONG, instrument=instrument, entry=el['open'],
+                      sl=el['open'] - el['atr'] * sl_multiplier, tp=el['open'] + el['atr'] * tp_multiplier, status=OrderStatus.FILLED))
             next_buy = False
         elif next_sell:
             orders.append(
-                Order(order_date=el['time'], side=OrderSide.SHORT, entry=el['open'], sl=el['open'] + el['atr'] * sl_multiplier,
-                      tp=el['open'] - el['atr'] * tp_multiplier, status=OrderStatus.FILLED))
+                Order(order_date=el['time'], side=OrderSide.SHORT, instrument=instrument, entry=el['open'],
+                      sl=el['open'] + el['atr'] * sl_multiplier, tp=el['open'] - el['atr'] * tp_multiplier, status=OrderStatus.FILLED))
             next_sell = False
 
         if el['signal'] == 1:
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     back_tester = BackTester(strategy='MA with ATR exit')
     for instrument, lot_size in instruments:
         df = sample_data(instrument=instrument, start=datetime(2005, 1, 1), end=datetime(2020, 3, 31), short_window=50, long_window=200)
-        orders = create_orders(df, 1.5, 3)
+        orders = create_orders(instrument, df, 1.5, 3)
         back_tester.lot_size = lot_size
         print(f"{'-' * 10} {instrument} {'-' * 10}")
         p = back_tester.run(df, orders, suffix=f'_{instrument}')

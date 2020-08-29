@@ -91,6 +91,7 @@ def backtest(instrument: str, start: str = None, end: str = None, maximum_order_
             orders.append(
                 Order(
                     order_date=ohlc['time'] + timedelta(hours=1),
+                    instrument=instrument,
                     side=OrderSide.LONG,
                     entry=entry,
                     sl=entry - atr,
@@ -104,6 +105,7 @@ def backtest(instrument: str, start: str = None, end: str = None, maximum_order_
             orders.append(
                 Order(
                     order_date=ohlc['time'] + timedelta(hours=1),
+                    instrument=instrument,
                     side=OrderSide.SHORT,
                     entry=entry,
                     sl=entry + atr,

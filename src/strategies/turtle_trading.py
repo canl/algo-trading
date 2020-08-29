@@ -134,7 +134,7 @@ if __name__ == '__main__':
                 if price['high'] >= price['last_20_high'] and price['close'] > price['day_ema_55'] and (price['day_rsi'] >= 70 or price['day_rsi'] <= 30):
                     sl = price['close'] - price['day_atr'] * 2
                     lots = pos_size(account_balance=initial_capital, risk_pct=risk_pct, sl_pips=price['day_atr'] * 2 * 10000, instrument='GBP_USD')
-                    orders.append(Order(price['time'], OrderSide.LONG, entry=price['close'], sl=sl, status=OrderStatus.FILLED, units=100000 * lots))
+                    orders.append(Order(price['time'], OrderSide.LONG, 'GBP_USD', entry=price['close'], sl=sl, status=OrderStatus.FILLED, units=100000 * lots))
             else:
                 previous_entry = open_longs[-1].entry
                 atr = price['day_atr']
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                     new_entry = previous_entry + atr / 2
                     new_sl = new_entry - atr * 2
                     logger.info('Adding buy units ...')
-                    orders.append(Order(price['time'], OrderSide.LONG, entry=new_entry, status=OrderStatus.FILLED, units=initial_units))
+                    orders.append(Order(price['time'], OrderSide.LONG, 'GBP_USD', entry=new_entry, status=OrderStatus.FILLED, units=initial_units))
                     for o in orders:
                         if o.is_open and o.is_long:
                             o.sl = new_sl
@@ -153,7 +153,7 @@ if __name__ == '__main__':
                 if price['low'] <= price['last_20_low'] and price['close'] < price['day_ema_55'] and (price['day_rsi'] >= 70 or price['day_rsi'] <= 30):
                     sl = price['close'] + price['day_atr'] * 2
                     lots = pos_size(account_balance=initial_capital, risk_pct=risk_pct, sl_pips=price['day_atr'] * 2 * 10000, instrument='GBP_USD')
-                    orders.append(Order(price['time'], OrderSide.SHORT, entry=price['close'], sl=sl, status=OrderStatus.FILLED, units=100000 * lots))
+                    orders.append(Order(price['time'], OrderSide.SHORT, 'GBP_USD', entry=price['close'], sl=sl, status=OrderStatus.FILLED, units=100000 * lots))
             else:
                 previous_entry = open_shorts[-1].entry
                 atr = price['day_atr']
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                     new_entry = previous_entry - atr / 2
                     new_sl = new_entry + atr * 2
                     logger.info('Adding sell units ...')
-                    orders.append(Order(price['time'], OrderSide.SHORT, entry=new_entry, status=OrderStatus.FILLED, units=initial_units))
+                    orders.append(Order(price['time'], OrderSide.SHORT, 'GBP_USD', entry=new_entry, status=OrderStatus.FILLED, units=initial_units))
                     for o in orders:
                         if o.is_open and o.is_short:
                             o.sl = new_sl
