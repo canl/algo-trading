@@ -157,9 +157,9 @@ class MaTrader:
 if __name__ == '__main__':
     import json
 
-    ccy_pair = "USD_JPY"
-    start = datetime(2010, 1, 1, 0, 0, 0)
-    end = datetime(2015, 7, 31, 0, 0, 0)
+    ccy_pair = "GBP_USD"
+    start = datetime(2017, 1, 1, 0, 0, 0)
+    end = datetime(2020, 7, 31, 0, 0, 0)
 
     signals = generate_signals(instrument=ccy_pair, start_date=start, end_date=end)
     signals.index = signals.index.strftime('%Y-%m-%d %H:%M:%S')
@@ -189,7 +189,7 @@ if __name__ == '__main__':
             'entry': o.entry,
             'sl': o.sl,
             'tp': o.tp,
-            'pnl': o.pnl * 100 if has_special_instrument(ccy_pair) else 10000,
+            'pnl': o.pnl * (100 if has_special_instrument(ccy_pair) else 10000),
             'close_time': o.last_update,
         }
         for o in ma.orders
