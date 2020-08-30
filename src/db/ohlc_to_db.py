@@ -26,10 +26,11 @@ def connect_to_db(db_file):
             sqlite3_conn.close()
 
 
-def insert_values_to_table(table_name):
+def insert_df_to_table(data: pd.DataFrame, table_name: str):
     """
     Open a csv file with pandas, store its content in a pandas data frame, change the data frame headers to the table
     column names and insert the data to the table
+    :param data: Data in DataFrame format, to be populated to SQL table
     :param table_name: table name in the database to insert the data into
     :return: None
     """
@@ -47,11 +48,9 @@ def insert_values_to_table(table_name):
                   'low      DECIMAL,'
                   'close    DECIMAL)')
 
-        df = read_price(instrument=f"{table_name[:3]}_{table_name[3:6]}".upper())
+        data.columns = get_column_names_from_db_table(c, table_name)
 
-        df.columns = get_column_names_from_db_table(c, table_name)
-
-        df.to_sql(name=table_name, con=conn, if_exists='append', index=False)
+        data.to_sql(name=table_name, con=conn, if_exists='append', index=False)
 
         conn.close()
         print('SQL insert process finished')
@@ -59,11 +58,8 @@ def insert_values_to_table(table_name):
         print('Connection to database failed')
 
 
-def read_price(instrument: str = 'GBP_USD') -> pd.DataFrame:
-    start = datetime(2015, 1, 1, 0, 0, 0)
-    to = datetime(2020, 7, 31, 23, 59, 59)
-    # to = datetime(2020, 8, 14, 23, 59, 59)
-    price_df = read_price_df(instrument=instrument, granularity='S5', start=start, end=to, max_count=4000)
+def read_price(start_date: datetime, end_date: datetime, instrument: str = 'GBP_USD') -> pd.DataFrame:
+    price_df = read_price_df(instrument=instrument, granularity='S5', start=start_date, end=end_date, max_count=4000)
     price_df.reset_index(level=0, inplace=True)
     price_df['time'] = price_df['time'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
     return price_df
@@ -90,5 +86,10 @@ def get_column_names_from_db_table(sql_cursor, table_name):
 
 
 if __name__ == '__main__':
+    ccy_pair = 'EUR_GBP'
+    start = datetime(2015, 1, 1, 0, 0, 0)
+    to = datetime(2020, 7, 31, 23, 59, 59)
+
+    df = read_price(start_date=start, end_date=to, instrument=ccy_pair)
     # pattern: currency_pair _ ohlc
-    insert_values_to_table('eurusd_ohlc')
+    insert_df_to_table(data=df, table_name=f"{ccy_pair.lower().replace('_', '')}_ohlc")
