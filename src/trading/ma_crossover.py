@@ -65,28 +65,27 @@ class MaTrader:
 
             last_pos = df['position'].iloc[-1]
             if last_pos == 0:
-                logger.info("No signal detected!")
-                return
-
-            if self.live_run:
-                logger.info(f"Closing open trade for {instrument}...")
-                matched_orders = self.om.get_open_trades()
-                matched_instrument = [o for o in matched_orders if o.get('instrument') == instrument]
-                for trade in matched_instrument:
-                    self.om.close_trade(trade['id'])
-
-                last_atr = df['atr'].iloc[-1]
-                last_close = df['close'].iloc[-1]
-                units = self.get_pos_size(instrument=instrument)
-                one_lot = 100000
-                if last_pos == 1:
-                    logger.info(f"Placing long market order for {instrument}")
-                    self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
-                else:
-                    logger.info(f"Placing short market order for {instrument}")
-                    self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
+                logger.info(f"No signal detected for instrument: {instrument}!")
             else:
-                logger.info("Dry run only, no order will be placed")
+                if self.live_run:
+                    logger.info(f"Closing open trade for {instrument}...")
+                    matched_orders = self.om.get_open_trades()
+                    matched_instrument = [o for o in matched_orders if o.get('instrument') == instrument]
+                    for trade in matched_instrument:
+                        self.om.close_trade(trade['id'])
+
+                    last_atr = df['atr'].iloc[-1]
+                    last_close = df['close'].iloc[-1]
+                    units = self.get_pos_size(instrument=instrument)
+                    one_lot = 100000
+                    if last_pos == 1:
+                        logger.info(f"Placing long market order for {instrument}")
+                        self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
+                    else:
+                        logger.info(f"Placing short market order for {instrument}")
+                        self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
+                else:
+                    logger.info("Dry run only, no order will be placed")
 
     def get_pos_size(self, instrument):
         nav = int(float(self.am.nav))
