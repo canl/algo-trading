@@ -57,7 +57,7 @@ class MaTrader:
 
     def run(self):
         for instrument in self.instruments:
-            logger.info(f"Reading hourly OHLC feed for last 10 days")
+            logger.info(f"Reading {instrument} hourly OHLC feed for last 10 days")
             df = self.check_for_signals(instrument=instrument)
             pd.set_option('display.max_columns', None)
             pd.set_option('display.width', 200)
