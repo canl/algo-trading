@@ -86,7 +86,7 @@ def get_column_names_from_db_table(sql_cursor, table_name):
 
 
 if __name__ == '__main__':
-    ccy_pair = 'EUR_GBP'
+    ccy_pair = 'USD_JPY'
     start = datetime(2015, 1, 1, 0, 0, 0)
     to = datetime(2020, 7, 31, 23, 59, 59)
 

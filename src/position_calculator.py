@@ -25,12 +25,12 @@ def pos_size(account_balance: float, risk_pct: float, sl_pips: float, instrument
 
 
 @lru_cache(1000)
-def get_fx_rate(account_ccy: str, instrument: str):
+def get_fx_rate(account_ccy: str, instrument: str) -> float:
     """
     Get latest fx rates against USD
     :param account_ccy: GBP, EUR
     :param instrument: currency pair, e.g. EUR_USD
-    :return:
+    :return: fx rates against USD
     """
     counter_ccy = instrument.split('_')[-1]
     if account_ccy == counter_ccy:

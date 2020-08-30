@@ -36,6 +36,7 @@ from src.pricer import read_price_df
 # 1. Read 1 hour price with 14days atr
 # 2. Generate buy/sell signal when crossover
 # 3. Simulate ticking price and placing/closing orders
+from src.utils.common import has_special_instrument
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,8 @@ class MaTrader:
         self.process_index = 0
         self.running = running
         self.instrument = instrument
+        # Special instruments like JPY or XAU has lot size as 100 instead of 10,000
+        self.multiplier = 100 if has_special_instrument(self.instrument) else 10000
 
     def run(self):
         while self.running:
@@ -105,24 +108,25 @@ class MaTrader:
                 logger.exception(f'Error while processing item: [{ex}]')
 
     def process_event(self, ohlc):
+
         if self.process_index < len(self.signals) and ohlc.time > self.signals[self.process_index]['time']:
             filled_order = next((o for o in self.orders if o.is_open), None)
             if filled_order:
                 if filled_order.is_long:
                     # close long filled order
                     if ohlc.open >= filled_order.entry:
-                        logger.info(f"Closing long order when crossover with profit: {(ohlc.open - filled_order.entry) * 10000} pips at [{ohlc.time}]")
+                        logger.info(f"Closing long order when crossover with profit: {(ohlc.open - filled_order.entry) * self.multiplier} pips at [{ohlc.time}]")
                         filled_order.close_with_win(ohlc.time, ohlc.open)
                     else:
-                        logger.info(f"Closing long order when crossover with loss: {(ohlc.open - filled_order.entry) * 10000} pips at [{ohlc.time}]")
+                        logger.info(f"Closing long order when crossover with loss: {(ohlc.open - filled_order.entry) * self.multiplier} pips at [{ohlc.time}]")
                         filled_order.close_with_loss(ohlc.time, ohlc.open)
                 else:
                     # close short filled order
                     if ohlc.open <= filled_order.entry:
-                        logger.info(f"Closing short order when crossover with profit: {(filled_order.entry - ohlc.open) * 10000} pips at [{ohlc.time}]")
+                        logger.info(f"Closing short order when crossover with profit: {(filled_order.entry - ohlc.open) * self.multiplier} pips at [{ohlc.time}]")
                         filled_order.close_with_win(ohlc.time, ohlc.open)
                     else:
-                        logger.info(f"Closing short order when crossover with loss: {(filled_order.entry - ohlc.open) * 10000} pips at [{ohlc.time}]")
+                        logger.info(f"Closing short order when crossover with loss: {(filled_order.entry - ohlc.open) * self.multiplier} pips at [{ohlc.time}]")
                         filled_order.close_with_loss(ohlc.time, ohlc.open)
 
             is_long = self.signals[self.process_index]['positions'] == 1
@@ -141,21 +145,21 @@ class MaTrader:
             if filled_order.is_long:
                 # buy order, low >= tp
                 if ohlc.low >= filled_order.tp:
-                    logger.info(f"Closing long order when profit target met: {(filled_order.tp - filled_order.entry) * 10000} pips at [{ohlc.time}]")
+                    logger.info(f"Closing long order when profit target met: {(filled_order.tp - filled_order.entry) * self.multiplier} pips at [{ohlc.time}]")
                     filled_order.close_with_win(ohlc[0], filled_order.tp)
             else:
                 # sell order, high >= tp
                 if ohlc.high <= filled_order.tp:
-                    logger.info(f"Closing short order when profit target met: {(filled_order.entry - filled_order.tp) * 10000} pips at [{ohlc.time}]")
+                    logger.info(f"Closing short order when profit target met: {(filled_order.entry - filled_order.tp) * self.multiplier} pips at [{ohlc.time}]")
                     filled_order.close_with_win(ohlc[0], filled_order.tp)
 
 
 if __name__ == '__main__':
     import json
 
-    ccy_pair = "EUR_USD"
-    start = datetime(2020, 1, 1, 0, 0, 0)
-    end = datetime(2020, 7, 31, 0, 0, 0)
+    ccy_pair = "USD_JPY"
+    start = datetime(2010, 1, 1, 0, 0, 0)
+    end = datetime(2015, 7, 31, 0, 0, 0)
 
     signals = generate_signals(instrument=ccy_pair, start_date=start, end_date=end)
     signals.index = signals.index.strftime('%Y-%m-%d %H:%M:%S')
@@ -185,7 +189,7 @@ if __name__ == '__main__':
             'entry': o.entry,
             'sl': o.sl,
             'tp': o.tp,
-            'pnl': o.pnl * 10000,
+            'pnl': o.pnl * 100 if has_special_instrument(ccy_pair) else 10000,
             'close_time': o.last_update,
         }
         for o in ma.orders
