@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class MeanReversionTrader:
     """
     A simple mean reversion strategy implementation
-    which wins around 70% of the time.
+    Market are ranging about 70% of the time.
 
     Rules:
 
