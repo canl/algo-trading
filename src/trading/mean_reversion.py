@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class MeanReversionTrader:
     """
     A simple mean reversion strategy implementation
-    which is around 70% of the time.
+    which wins around 70% of the time.
 
     Rules:
 
@@ -37,7 +37,7 @@ class MeanReversionTrader:
                 2) RSI between 30 to 70
                 3) with entry price as: 20 days high + 5pips adj
             3. Cancel the order if it cannot be filled in 3 hours
-            4. Maximum 4 orders allowed for each long or short direction. 10pips between orders (Do not want to against the trend)
+            4. Maximum 4 orders allowed for each long or short direction. 10pips between orders (Remember, you do not want to be standing in the way of a freight train!!!)
 
         SL:
             long: entry - 14 days ATR
@@ -55,7 +55,7 @@ class MeanReversionTrader:
     SPECIAL_INSTRUMENTS = ('XAU', 'JPY', 'BCO')  # special_instruments' pip is the second place after the decimal (0.01) rather than the fourth (0.0001).
 
     def __init__(self, events: queue.Queue, instruments: list, feeds_loc: str, max_orders: int = 4, account: str = 'mt4',
-                 entry_adj: float = 0.0005, adj_btw_orders: float = 0.001, expiry_hours: int = 3, risk_pct: float = 0.02,
+                 entry_adj: float = 0.0005, adj_btw_orders: float = 0.0025, expiry_hours: int = 3, risk_pct: float = 0.02,
                  live_run: bool = False, heartbeat: int = 1):
 
         """
@@ -66,7 +66,7 @@ class MeanReversionTrader:
         :param max_orders: maximum order allowed for LONG or SHORT
         :param account: Oanda account name: primary or mt4
         :param entry_adj: entry adjustment, default to 5 pips
-        :param adj_btw_orders: entry adjustment between orders, default to 10 pips
+        :param adj_btw_orders: entry adjustment between orders, default to 25 pips
         :param expiry_hours: expiry hours for GTD trades (Good Till Date)
         :param risk_pct: risk percentage for each trade
         :param live_run: live or dry run, default to false
