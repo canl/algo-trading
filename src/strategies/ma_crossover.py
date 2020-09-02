@@ -189,7 +189,7 @@ if __name__ == '__main__':
             'entry': o.entry,
             'sl': o.sl,
             'tp': o.tp,
-            'pnl': o.pnl * (100 if has_special_instrument(ccy_pair) else 10000),
+            f'{ccy_pair}_pnl': o.pnl * (100 if has_special_instrument(ccy_pair) else 10000),
             'close_time': o.last_update,
         }
         for o in ma.orders
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
     df.to_csv(r'C:\temp\stats.csv')
     plt.style.use('ggplot')
-    chart_df = df[["open_time", "pnl"]]
+    chart_df = df[["open_time", f'{ccy_pair}_pnl']]
     chart_df = chart_df.set_index('open_time')
     chart_df.cumsum().plot()
     plt.xticks(rotation=45)
