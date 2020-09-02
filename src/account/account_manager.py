@@ -19,6 +19,10 @@ class AccountManager:
         return float(self.get_info()['NAV'])
 
     @property
+    def currency(self):
+        return float(self.get_info()['currency'])
+
+    @property
     def pl(self):
         return float(self.get_info()['pl'])
 
@@ -51,6 +55,6 @@ class AccountManager:
 
 
 if __name__ == '__main__':
-    am = AccountManager('mt4')
+    am = AccountManager('primary')
     am.get_info()
     print(am.nav)

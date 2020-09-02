@@ -1,6 +1,8 @@
 import logging
 from functools import lru_cache
 
+from oandapyV20 import V20Error
+
 from src.pricer import api_request
 
 logger = logging.getLogger(__name__)
@@ -21,7 +23,7 @@ def pos_size(account_balance: float, risk_pct: float, sl_pips: float, instrument
     pip_value = 100000 * multiplier  # standard lot size * pip, i.e 100000 * 0.0001
     close = get_fx_rate(account_ccy, instrument)
     risk_amt = account_balance * risk_pct
-    return round(risk_amt / (sl_pips * pip_value) * float(close), 4)
+    return round(risk_amt / (sl_pips * pip_value) * close, 4)
 
 
 @lru_cache(1000)
@@ -40,9 +42,15 @@ def get_fx_rate(account_ccy: str, instrument: str) -> float:
         "count": 1,
         "granularity": "M1"
     }
-    resp = api_request(f'{account_ccy}_{counter_ccy}', p)
-    close = resp['candles'][0]['mid']['c']
-    logger.info(f'Close fx rate is: {close}')
+    try:
+        resp = api_request(f'{account_ccy}_{counter_ccy}', p)
+        close = float(resp['candles'][0]['mid']['c'])
+        logger.info(f'Close fx rate is: {close}')
+    except V20Error:
+        resp = api_request(f'{counter_ccy}_{account_ccy}', p)
+        close = 1 / float(resp['candles'][0]['mid']['c'])
+        logger.info(f'Close fx rate is: {close}')
+
     return close
 
 
@@ -54,3 +62,4 @@ if __name__ == '__main__':
     print(pos_size(10000, 0.02, 50, 'AUD_JPY', 'EUR'))
     print(pos_size(10000, 0.02, 50, 'EUR_AUD'))
     print(pos_size(10000, 0.02, 50, 'BCO_USD'))
+    print(pos_size(100000, 0.02, 50, 'EUR_USD', account_ccy='HKD'))
