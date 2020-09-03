@@ -20,7 +20,7 @@ class AccountManager:
 
     @property
     def currency(self):
-        return float(self.get_info()['currency'])
+        return self.get_info()['currency']
 
     @property
     def pl(self):
