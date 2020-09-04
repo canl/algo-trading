@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    TRADED_INSTRUMENTS = ['GBP_USD', 'EUR_USD', 'USD_JPY', 'EUR_GBP', 'AUD_USD']
+    TRADED_INSTRUMENTS = ['GBP_USD', 'EUR_USD', 'USD_JPY', 'EUR_GBP', 'AUD_USD', 'USD_CAD']
 
     trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, sl_pips=30, live_run=args.liveRun)
     trader.run()
