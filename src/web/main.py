@@ -31,3 +31,8 @@ def account_performance(env: str, account: str):
 @main.route('/trading-view')
 def trading_view():
     return render_template('trading_view.html')
+
+
+@main.route('/widgets')
+def widgets():
+    return render_template('widgets.html')
