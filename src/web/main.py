@@ -26,3 +26,8 @@ def dashboard():
 def account_performance(env: str, account: str):
     start_from = request.args.get('start_from', default=0, type=int)
     return render_template('performance.html', env=env, account=account, start_from=start_from, name=current_user.name)
+
+
+@main.route('/trading-view')
+def trading_view():
+    return render_template('trading_view.html')

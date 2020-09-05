@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container-fluid page-content">
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-chart-bar mr-1"></i>
+                Live Price
+            </div>
+            <div class="card-body">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                    <div id="tradingview_77f8f" style="height: 700px"></div>
+                    <div class="tradingview-widget-copyright"><a
+                            href="https://www.tradingview.com/symbols/GBPUSD/?exchange=OANDA"
+                            rel="noopener" target="_blank"><span
+                            class="blue-text">GBPUSD Chart</span></a> by TradingView
+                    </div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+                    <script type="text/javascript">
+                      new TradingView.widget(
+                        {
+                          "autosize": true,
+                          "symbol": "OANDA:GBPUSD",
+                          "interval": "D",
+                          "timezone": "Etc/UTC",
+                          "theme": "light",
+                          "style": "1",
+                          "locale": "en",
+                          "toolbar_bg": "#f1f3f6",
+                          "enable_publishing": false,
+                          "allow_symbol_change": true,
+                          "show_popup_button": true,
+                          'details': true,
+                          "container_id": "tradingview_77f8f"
+                        }
+                      );
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Widget END -->
+{% endblock %}
