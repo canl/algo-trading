@@ -3,11 +3,14 @@ import re
 from datetime import datetime, timedelta
 
 import numpy as np
-import oandapyV20.endpoints.instruments as v20instruments
 import pandas as pd
 from dateutil import parser
 
+import oandapyV20.endpoints.instruments as v20instruments
+from oandapyV20 import V20Error
+
 from src.env import RUNNING_ENV
+from src.utils.timeout_cache import cache
 
 OANDA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
@@ -204,6 +207,21 @@ def get_candlesticks(start, end, granularity):
 
     if granularity.startswith('S'):
         return int(np.ceil(seconds / nums))
+
+
+@cache(seconds=60)
+def get_spot_rate(ccy_pair: str) -> float:
+    p = {
+        "count": 1,
+        "granularity": "S5"
+    }
+    try:
+        resp = api_request(ccy_pair, p)
+        close = float(resp['candles'][0]['mid']['c'])
+        logger.info(f'Close fx rate for {ccy_pair} is: {close}')
+        return close
+    except V20Error:
+        logger.info(f'Failed to get spot rate for: {ccy_pair}')
 
 
 if __name__ == '__main__':

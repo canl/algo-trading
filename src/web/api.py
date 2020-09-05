@@ -7,6 +7,8 @@ from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
 from src.orders.order import OrderSide
 from src.orders.order_manager import OrderManager
+from src.pricer import get_spot_rate
+from src.utils.common import has_special_instrument
 
 api = Blueprint('api', __name__)
 
@@ -43,26 +45,36 @@ def account(env: str, name: str) -> dict:
 @api.route('/<env>/account/<name>/orders', methods=['GET'])
 def order(env: str, name: str) -> dict:
     trades = get_trades(env, name)
+    res = []
+    for el in trades:
+        state = el['state']
+        ccy_pair = el['instrument']
+        common = {
+            'id': el['id'],
+            'side': OrderSide.LONG.upper() if float(el['initialUnits']) > 0 else OrderSide.SHORT.upper(),
+            'instrument': ccy_pair,
+            'units': abs(int(float(el['initialUnits']))),
+            'entryPrice': float(el['price']),
+            'tp': float(el.get('takeProfitOrder').get('price')) if el.get('takeProfitOrder') else None,
+            'sl': float(el.get('stopLossOrder').get('price')) if el.get('stopLossOrder') else None,
+            'exitPrice': float(el['averageClosePrice']) if state == 'CLOSED' else None,
+            'financing': round(float(el['financing']), 2),
+            'pl': round(float(el['unrealizedPL']), 2) if state == 'OPEN' else round(float(el['realizedPL']), 2),
+            'state': state,
+            'openTime': el['openTime'][:19].replace("T", " "),
+            'closeTime': el['closeTime'][:19].replace("T", " ") if state == 'CLOSED' else None
+        }
+        if state == 'OPEN':
+            spot_rate = round(get_spot_rate(ccy_pair), 5)
+            multiplier = 100 if has_special_instrument(ccy_pair) else 10000
+            common.update({
+                'spotRate': spot_rate,
+                'pips': ((spot_rate - float(el['price'])) * multiplier) if float(el['initialUnits']) > 0 else ((float(el['price']) - spot_rate) * multiplier)
+            })
+        res.append(common)
     return {
         'status': HTTPStatus.OK,
-        'data': [
-            {
-                'id': el['id'],
-                'side': OrderSide.LONG.upper() if float(el['initialUnits']) > 0 else OrderSide.SHORT.upper(),
-                'instrument': el['instrument'],
-                'units': abs(int(float(el['initialUnits']))),
-                'entryPrice': float(el['price']),
-                'tp': float(el.get('takeProfitOrder').get('price')) if el.get('takeProfitOrder') else None,
-                'sl': float(el.get('stopLossOrder').get('price')) if el.get('stopLossOrder') else None,
-                'exitPrice': float(el['averageClosePrice']) if el['state'] == 'CLOSED' else None,
-                'financing': round(float(el['financing']), 2),
-                'pl': round(float(el['unrealizedPL']), 2) if el['state'] == 'OPEN' else round(float(el['realizedPL']), 2),
-                'state': el['state'],
-                'openTime': el['openTime'][:19].replace("T", " "),
-                'closeTime': el['closeTime'][:19].replace("T", " ") if el['state'] == 'CLOSED' else None
-            }
-            for el in trades
-        ]
+        'data': res
     }
 
 

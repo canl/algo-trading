@@ -1,49 +1,63 @@
 <script>
-    $(document).ready(function () {
-        $("#open-trades").DataTable({
-            ajax: "/api/v1/{{env}}/account/{{account}}/orders?state=OPEN&start_from={{ start_from }}",
-            columns: [
-                {data: 'id', class: 'text-center'},
-                {data: 'openTime', class: 'text-center'},
-                {data: 'side', class: 'text-center'},
-                {data: 'instrument', class: 'text-center'},
-                {
-                    data: 'units',
-                    class: 'text-right',
-                    render: $.fn.dataTable.render.number(',', '.', 0)
-                },
-                {data: 'entryPrice', class: 'text-right'},
-                {data: 'tp', class: 'text-right'},
-                {data: 'sl', class: 'text-right'},
-                {
-                    data: 'financing',
-                    class: 'text-right',
-                    render: $.fn.dataTable.render.number(',', '.', 2, '£')
-                },
-                {
-                    data: 'pl',
-                    class: 'text-right',
-                    render: $.fn.dataTable.render.number(',', '.', 2, '£')
-                }
-            ],
-            formatNumber: function (toFormat) {
-                return toFormat.toString().replace(
-                    /\B(?=(\d{3})+(?!\d))/g, "'"
-                );
-            },
-            fixedHeader: {header: true},
-            order: [[0, "desc"]],
-            bPaginate: false,
-            responsive: true,
-            rowCallback: function (row, data, index) {
-                if (data['pl'] > 0) {
-                    $(row).find('td:eq(9)').css('color', 'green');
-                } else {
-                    $(row).find('td:eq(9)').css('color', 'red');
-                }
-            }
-        });
-    })
+  $(document).ready(function () {
+    $("#open-trades").DataTable({
+      ajax: "/api/v1/{{env}}/account/{{account}}/orders?state=OPEN&start_from={{ start_from }}",
+      columns: [
+        {data: 'id', class: 'text-center'},
+        {data: 'openTime', class: 'text-center'},
+        {data: 'side', class: 'text-center'},
+        {data: 'instrument', class: 'text-center'},
+        {
+          data: 'units',
+          class: 'text-right',
+          render: $.fn.dataTable.render.number(',', '.', 0)
+        },
+        {data: 'entryPrice', class: 'text-right'},
+        {data: 'tp', class: 'text-right'},
+        {data: 'sl', class: 'text-right'},
+        {data: 'spotRate', class: 'text-right'},
+        {
+          data: 'pips',
+          class: 'text-right',
+          render: $.fn.dataTable.render.number(',', '.', 0)
+        },
+        {
+          data: 'financing',
+          class: 'text-right',
+          render: $.fn.dataTable.render.number(',', '.', 2, '£')
+        },
+        {
+          data: 'pl',
+          class: 'text-right font-weight-bold',
+          render: $.fn.dataTable.render.number(',', '.', 2, '£')
+        }
+      ],
+      formatNumber: function (toFormat) {
+        return toFormat.toString().replace(
+          /\B(?=(\d{3})+(?!\d))/g, "'"
+        );
+      },
+      fixedHeader: {header: true},
+      order: [[0, "desc"]],
+      bPaginate: false,
+      responsive: true,
+      rowCallback: function (row, data, index) {
+        if (data['pl'] > 0) {
+          $(row).find('td:eq(9)').css('color', 'green');
+          $(row).find('td:eq(11)').css('color', 'green');
+        } else {
+          $(row).find('td:eq(9)').css('color', 'red');
+          $(row).find('td:eq(11)').css('color', 'red');
+        }
+
+        if (data['financing'] >= 0) {
+          $(row).find('td:eq(10)').css('color', 'green');
+        } else {
+          $(row).find('td:eq(10)').css('color', 'red');
+        }
+      }
+    });
+  })
 </script>
 <div class="card mb-3">
     <div class="card-header">
@@ -61,6 +75,8 @@
                 <th>Entry</th>
                 <th>TP</th>
                 <th>SL</th>
+                <th>Spot</th>
+                <th>Pips</th>
                 <th>Swap</th>
                 <th>PL</th>
             </tr>
