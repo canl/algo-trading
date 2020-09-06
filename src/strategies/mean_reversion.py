@@ -171,7 +171,7 @@ if __name__ == '__main__':
     dfs = []
     back_tester = BackTester(strategy='Mean Reversion')
     for ccy_pair, lot_size in instruments:
-        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-06-30', output_result=False)
+        test_orders = run(instrument=ccy_pair, window=20, max_orders=4, entry_adj=0.0005, tp_adj=0, start_date='2010-01-01', end_date='2020-12-31', output_result=False)
         back_tester.lot_size = lot_size
         print(f"{'*' * 30} {ccy_pair} {'*' * 30}")
         back_tester.print_stats(test_orders)

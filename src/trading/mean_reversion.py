@@ -219,8 +219,7 @@ if __name__ == '__main__':
 
     price_events = queue.Queue()
     TRADED_INSTRUMENTS = [
-        'GBP_USD', 'EUR_USD', 'AUD_USD', 'USD_SGD', 'USD_JPY',
-        'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
+        'EUR_USD', 'AUD_USD', 'USD_JPY', 'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'BCO_USD'
     ]
 
     t = MeanReversionTrader(events=price_events, instruments=TRADED_INSTRUMENTS, feeds_loc=args.priceDir, account=args.accountName, live_run=args.liveRun)
