@@ -1,11 +1,10 @@
-import logging
 import json
+import logging
 
 import oandapyV20.endpoints.accounts as v20accounts
 from oandapyV20 import V20Error
 
 from src.env import RUNNING_ENV
-from src.utils.timeout_cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -13,36 +12,41 @@ logger = logging.getLogger(__name__)
 class AccountManager:
     def __init__(self, account):
         self.account_id = RUNNING_ENV.get_account(account)
+        self.account_info = {}
+        self.get_info()
+
+    @property
+    def info(self):
+        return self.account_info
 
     @property
     def nav(self):
-        return float(self.get_info()['NAV'])
+        return float(self.account_info['NAV'])
 
     @property
     def currency(self):
-        return self.get_info()['currency']
+        return self.account_info['currency']
 
     @property
     def pl(self):
-        return float(self.get_info()['pl'])
+        return float(self.account_info['pl'])
 
     @property
     def unrealized_pl(self):
-        return float(self.get_info()['unrealizedPL'])
+        return float(self.account_info['unrealizedPL'])
 
     @property
     def balance(self):
-        return float(self.get_info()['balance'])
+        return float(self.account_info['balance'])
 
     @property
     def financing(self):
-        return float(self.get_info()['financing'])
+        return float(self.account_info['financing'])
 
     @property
     def initial_balance(self):
         return self.balance - (self.pl + self.financing)
 
-    @cache(seconds=3600)
     def get_info(self):
         try:
             r = v20accounts.AccountSummary(self.account_id)
@@ -51,10 +55,12 @@ class AccountManager:
             logging.error(r.status_code, err)
         else:
             logging.info(json.dumps(resp['account'], indent=2))
-            return resp['account']
+            self.account_info = resp['account']
+            return self.account_info
 
 
 if __name__ == '__main__':
-    am = AccountManager('primary')
-    am.get_info()
+    RUNNING_ENV.load_config('live')
+    am = AccountManager('mt4')
+    print(json.dumps(am.info, indent=2))
     print(am.nav)

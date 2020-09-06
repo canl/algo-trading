@@ -20,24 +20,23 @@ def account(env: str, name: str) -> dict:
     valid_env(env)
 
     am = AccountManager(account=name)
-    res = am.get_info()
     return {
         'status': HTTPStatus.OK,
         'data': {
-            'id': res['id'],
-            'name': res['alias'],
+            'id': am.info['id'],
+            'name': am.info['alias'],
             'initial_balance': am.initial_balance,
             'balance': am.balance,
-            'currency': res['currency'],
+            'currency': am.info['currency'],
             'financing': am.financing,
             'pl': am.pl,
             'nav': am.nav,
             'unrealized_pl': am.unrealized_pl,
-            "open_position_count": res['openPositionCount'],
-            "open_trade_count": res['openTradeCount'],
-            "pending_order_count": res['pendingOrderCount'],
-            'last_transaction_id': float(res['lastTransactionID']),
-            'created_time': res['createdTime']
+            "open_position_count": am.info['openPositionCount'],
+            "open_trade_count": am.info['openTradeCount'],
+            "pending_order_count": am.info['pendingOrderCount'],
+            'last_transaction_id': float(am.info['lastTransactionID']),
+            'created_time': am.info['createdTime']
         }
     }
 
@@ -105,7 +104,7 @@ def account_stats(env: str, name: str):
         'data': {
             'nav': am.nav,
             'initial_balance': am.initial_balance,
-            'pl': gross_profit + gross_loss,
+            'pl': am.pl + am.financing,
             'unrealized_pL': am.unrealized_pl,
             'pl_pct': (am.pl + am.financing) / am.initial_balance,
             'pl_pips': pl_pips,
