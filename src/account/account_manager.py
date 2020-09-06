@@ -62,5 +62,4 @@ class AccountManager:
 if __name__ == '__main__':
     RUNNING_ENV.load_config('live')
     am = AccountManager('mt4')
-    print(json.dumps(am.info, indent=2))
     print(am.nav)

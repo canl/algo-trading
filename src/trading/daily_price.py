@@ -11,7 +11,7 @@ from src.finta.ta import TA
 logger = logging.getLogger(__name__)
 
 
-def output_feeds(instrument: str, short_win: int, long_win: int, ema_period: int, save_dir: str, st: datetime, et: datetime = None) -> pd.DataFrame:
+def output_daily_price(instrument: str, short_win: int, long_win: int, ema_period: int, save_dir: str, st: datetime, et: datetime = None) -> pd.DataFrame:
     """
     Output daily ohlc price feeds to csv
     :param instrument: ccy_pair
@@ -53,4 +53,4 @@ if __name__ == '__main__':
     )
     for inst in instruments:
         # Output feeds from 2020
-        output_feeds(instrument=inst, st=datetime(2020, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=args.saveDir)
+        output_daily_price(instrument=inst, st=datetime(2020, 1, 1), et=None, short_win=20, long_win=10, ema_period=55, save_dir=args.saveDir)

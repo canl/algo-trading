@@ -5,7 +5,7 @@ from functools import partial
 import pandas as pd
 
 from src.pricer import read_price_df
-from src.finta.ta import TA
+from src.trading.daily_price import output_daily_price
 
 logger = logging.getLogger(__name__)
 
@@ -27,22 +27,11 @@ def output_feeds(instrument: str, st: datetime, et: datetime, short_win: int, lo
     pd_h1[f'last_{short_win}_high'] = pd_h1['high'].rolling(window=short_win * 24).max()
     pd_h1[f'last_{long_win}_low'] = pd_h1['low'].rolling(window=long_win * 24).min()
     pd_h1[f'last_{short_win}_low'] = pd_h1['low'].rolling(window=short_win * 24).min()
-
     pd_h1.to_csv(f'{save_dir}/{instrument.lower()}_h1.csv')
-
-    pd_d = read_price_df(instrument=instrument, granularity='D', start=st, end=et)
-    pd_d[f'last_{long_win}_high'] = pd_d['high'].rolling(window=long_win).max()
-    pd_d[f'last_{short_win}_high'] = pd_d['high'].rolling(window=short_win).max()
-    pd_d[f'last_{long_win}_low'] = pd_d['low'].rolling(window=long_win).min()
-    pd_d[f'last_{short_win}_low'] = pd_d['low'].rolling(window=short_win).min()
-    pd_d['atr'] = TA.ATR(pd_d, period=14)
-    pd_d['adx'] = TA.ADX(pd_d, period=14)
-    pd_d['rsi'] = TA.RSI(pd_d, period=14)
-    pd_d[f'ema_{ema_period}'] = TA.EMA(pd_d, period=ema_period)
-
-    pd_d.to_csv(f'{save_dir}/{instrument.lower()}_d.csv')
-
     pd_h1.reset_index(level=0, inplace=True)
+
+    pd_d = output_daily_price(instrument=instrument, st=st, et=et, short_win=short_win, long_win=long_win, ema_period=ema_period, save_dir=save_dir)
+
     pd_merged = pd_h1.apply(partial(enrich, pd_d, ema_period), axis=1).set_index('time')
 
     logger.info(pd_merged.info())
@@ -67,4 +56,4 @@ if __name__ == '__main__':
         'GBP_AUD', 'USD_CAD', 'EUR_GBP', 'USD_CHF', 'BCO_USD'
     )
     for inst in popular_pairs:
-        output_feeds(instrument=inst, st=datetime(2010, 1, 1), et=datetime(2020, 7, 31), short_win=20, long_win=10, ema_period=55, save_dir='c:/temp')
+        output_feeds(instrument=inst, st=datetime(2010, 1, 1), et=datetime(2020, 8, 31), short_win=20, long_win=10, ema_period=55, save_dir='c:/temp')
