@@ -8,6 +8,7 @@ from oandapyV20.endpoints import orders, trades
 
 from src.env import RUNNING_ENV
 from src.orders.order import OrderSide
+from src.utils.common import has_special_instrument
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -31,8 +32,8 @@ class OrderManager:
         order_request = MarketOrderRequest(
             instrument=instrument,
             units=units * (1 if side == OrderSide.LONG else -1),
-            takeProfitOnFill=TakeProfitDetails(price=tp).data if tp else None,
-            stopLossOnFill=StopLossDetails(price=sl).data if sl else None,
+            takeProfitOnFill=TakeProfitDetails(price=self._adjust_decimals(instrument, tp)).data if tp else None,
+            stopLossOnFill=StopLossDetails(price=self._adjust_decimals(instrument, sl)).data if sl else None,
         )
         self._submit_order_request(order_request, self.account_id)
 
@@ -40,9 +41,9 @@ class OrderManager:
         order_request = LimitOrderRequest(
             instrument=instrument,
             units=units * (1 if side == OrderSide.LONG else -1),
-            price=price,
-            takeProfitOnFill=TakeProfitDetails(price=tp).data,
-            stopLossOnFill=StopLossDetails(price=sl).data,
+            price=self._adjust_decimals(instrument, price),
+            takeProfitOnFill=TakeProfitDetails(price=self._adjust_decimals(instrument, tp)).data,
+            stopLossOnFill=StopLossDetails(price=self._adjust_decimals(instrument, sl)).data,
             timeInForce='GTD' if expiry else 'GTC',
             gtdTime=expiry
         )
@@ -52,13 +53,19 @@ class OrderManager:
         order_request = StopOrderRequest(
             instrument=instrument,
             units=units * (1 if side == OrderSide.LONG else -1),
-            price=price,
-            takeProfitOnFill=TakeProfitDetails(price=tp).data,
-            stopLossOnFill=StopLossDetails(price=sl).data,
+            price=self._adjust_decimals(instrument, price),
+            takeProfitOnFill=TakeProfitDetails(price=self._adjust_decimals(instrument, tp)).data,
+            stopLossOnFill=StopLossDetails(price=self._adjust_decimals(instrument, sl)).data,
             timeInForce='GTD' if expiry else 'GTC',
             gtdTime=expiry
         )
         self._submit_order_request(order_request, self.account_id)
+
+    @staticmethod
+    def _adjust_decimals(instrument: str, price: float) -> float:
+        if has_special_instrument(instrument=instrument):
+            return round(price, 3)
+        return round(price, 5)
 
     @staticmethod
     def _submit_order_request(request, account_id):
