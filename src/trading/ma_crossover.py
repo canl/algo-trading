@@ -120,7 +120,7 @@ class MaTrader:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Moving Average Crossover Trading Strategy")
-    parser.add_argument('--waitSeconds', help="Wait for a number of seconds before run", action='store_true', type=int, default=0)
+    parser.add_argument('--waitSeconds', help="Wait for a number of seconds before run", action='store', type=int, default=0)
     parser.add_argument('--liveRun', help="Flag to indicate dry or live run", action='store_true', default=False)
     parser.add_argument('--env', action="store", dest="env", default='practice')
     parser.add_argument('--accountName', action="store", dest='accountName', default='primary')
