@@ -1,6 +1,6 @@
 import argparse
 import logging
-
+import time
 import numpy as np
 import pandas as pd
 
@@ -37,7 +37,7 @@ class MaTrader:
               when short window cross over long window from bottom
     """
 
-    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64, sl_pips: int = 50, live_run: bool = False):
+    def __init__(self, account: str, instruments: list, short_win: int = 16, long_win: int = 64, sl_pips: int = 50, wait_seconds: int = 0, live_run: bool = False):
         """
         Moving average cross over strategy
         :param account: account id
@@ -45,6 +45,7 @@ class MaTrader:
         :param short_win: define short moving average
         :param long_win: define long moving average
         :param sl_pips: stop loss pips for calculating position size. Default to 50.
+        :param wait_seconds: sleep for a number of seconds before run
         :param live_run: live or dry run, default to false
         """
         self.am = AccountManager(account)
@@ -53,9 +54,13 @@ class MaTrader:
         self.short_win = short_win
         self.long_win = long_win
         self.sl_pips = sl_pips
+        self.wait_seconds = wait_seconds
         self.live_run = live_run
 
     def run(self):
+        # Wait for a few seconds, as in Python anywhere we can only schedule the job by minute
+        logger.info(f"Waiting for {self.wait_seconds} seconds")
+        time.sleep(self.wait_seconds)
         for instrument in self.instruments:
             logger.info(f"Reading {instrument} hourly OHLC feed for last 10 days")
             df = self.check_for_signals(instrument=instrument)
@@ -123,5 +128,5 @@ if __name__ == '__main__':
 
     TRADED_INSTRUMENTS = ['GBP_USD', 'EUR_USD', 'USD_JPY', 'EUR_GBP', 'AUD_USD', 'USD_CAD']
 
-    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, sl_pips=30, live_run=args.liveRun)
+    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, sl_pips=30, wait_seconds=40, live_run=args.liveRun)
     trader.run()
