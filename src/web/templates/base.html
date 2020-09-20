@@ -103,6 +103,12 @@
                                  data-parent="#sidenavAccordionPages">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link"
+                                       href="{{ url_for('main.account_performance', env='live', account='primary') }}">
+                                        Trend Following
+                                    </a>
+                                </nav>
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link"
                                        href="{{ url_for('main.account_performance', env='live', account='mt4') }}">
                                         London Breakout</a>
                                 </nav>
