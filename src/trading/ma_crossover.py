@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src.account.account_manager import AccountManager
+from src.env import RUNNING_ENV
 from src.indicators import exponential_moving_average, average_true_range
 from src.orders.order import OrderSide
 from src.orders.order_manager import OrderManager
@@ -126,6 +127,8 @@ if __name__ == '__main__':
     parser.add_argument('--accountName', action="store", dest='accountName', default='primary')
 
     args = parser.parse_args()
+    if args.env == 'live':
+        RUNNING_ENV.load_config('live')
 
     TRADED_INSTRUMENTS = ['GBP_USD', 'EUR_USD', 'USD_JPY', 'EUR_GBP', 'AUD_USD', 'USD_CAD']
 
