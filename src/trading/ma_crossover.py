@@ -69,7 +69,7 @@ class MaTrader:
             pd.set_option('display.width', 200)
             logger.info(f"\n{df.tail(10)}")
 
-            last_pos = df['position'].iloc[-1]
+            last_pos = df['position'].iloc[-2]
             if last_pos == 0:
                 logger.info(f"No signal detected for instrument: {instrument}!")
             else:
@@ -80,8 +80,8 @@ class MaTrader:
                     for trade in matched_instrument:
                         self.om.close_trade(trade['id'])
 
-                    last_atr = df['atr'].iloc[-1]
-                    last_close = df['close'].iloc[-1]
+                    last_atr = df['atr'].iloc[-2]
+                    last_close = df['close'].iloc[-2]
                     units = self.get_pos_size(instrument=instrument)
                     one_lot = 100000
                     if last_pos == 1:
