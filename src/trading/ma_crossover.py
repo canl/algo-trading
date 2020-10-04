@@ -1,12 +1,13 @@
 import argparse
 import logging
 import time
+
 import numpy as np
 import pandas as pd
 
 from src.account.account_manager import AccountManager
 from src.env import RUNNING_ENV
-from src.indicators import exponential_moving_average, average_true_range
+from src.finta.ta import TA
 from src.orders.order import OrderSide
 from src.orders.order_manager import OrderManager
 from src.position_calculator import pos_size
@@ -69,7 +70,7 @@ class MaTrader:
             pd.set_option('display.width', 200)
             logger.info(f"\n{df.tail(10)}")
 
-            last_pos = df['position'].iloc[-2]
+            last_pos = df['position'].iloc[-1]
             if last_pos == 0:
                 logger.info(f"No signal detected for instrument: {instrument}!")
             else:
@@ -80,16 +81,16 @@ class MaTrader:
                     for trade in matched_instrument:
                         self.om.close_trade(trade['id'])
 
-                    last_atr = df['atr'].iloc[-2]
-                    last_close = df['close'].iloc[-2]
+                    last_atr = df['atr'].iloc[-1]
+                    last_close = df['close'].iloc[-1]
                     units = self.get_pos_size(instrument=instrument)
                     one_lot = 100000
                     if last_pos == 1:
                         logger.info(f"Placing long market order for {instrument}")
-                        self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, tp=last_close + 5 * last_atr)
+                        self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, sl=last_close - 3 * last_atr, tp=last_close + 5 * last_atr)
                     else:
                         logger.info(f"Placing short market order for {instrument}")
-                        self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, tp=last_close - 5 * last_atr)
+                        self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, sl=last_close + 3 * last_atr, tp=last_close - 5 * last_atr)
                 else:
                     logger.info("Dry run only, no order will be placed")
 
@@ -105,9 +106,9 @@ class MaTrader:
         }
         resp = api_request(instrument=instrument, p=param)
         df = pd.DataFrame(transform(resp['candles'])).set_index('time')
-        df['ema_short'] = exponential_moving_average(df, self.short_win)
-        df['ema_long'] = exponential_moving_average(df, self.long_win)
-        df['atr'] = average_true_range(df, 14)
+        df['ema_short'] = TA.EMA(df, period=self.short_win)
+        df['ema_long'] = TA.EMA(df, period=self.long_win)
+        df['atr'] = TA.ATR(df, 14)
         df['signal'] = 0.0
         # Create a 'signal' (invested or not invested) when the short moving average crosses the long
         # moving average, but only for the period greater than the shortest moving average window
@@ -121,16 +122,20 @@ class MaTrader:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Moving Average Crossover Trading Strategy")
+    parser.add_argument('--instruments', help="specify trading instruments", action='store', type=str)
     parser.add_argument('--waitSeconds', help="Wait for a number of seconds before run", action='store', type=int, default=0)
     parser.add_argument('--liveRun', help="Flag to indicate dry or live run", action='store_true', default=False)
     parser.add_argument('--env', action="store", dest="env", default='practice')
     parser.add_argument('--accountName', action="store", dest='accountName', default='primary')
 
     args = parser.parse_args()
+    if not args.instruments:
+        raise ValueError("Missing instruments argument")
+
     if args.env == 'live':
         RUNNING_ENV.load_config('live')
 
-    TRADED_INSTRUMENTS = ['GBP_USD', 'EUR_USD', 'USD_JPY', 'EUR_GBP', 'AUD_USD', 'USD_CAD']
+    traded_instruments = args.instruments.split(',')
 
-    trader = MaTrader(account='primary', instruments=TRADED_INSTRUMENTS, sl_pips=30, wait_seconds=args.waitSeconds, live_run=args.liveRun)
+    trader = MaTrader(account='primary', instruments=traded_instruments, sl_pips=30, wait_seconds=args.waitSeconds, live_run=args.liveRun)
     trader.run()

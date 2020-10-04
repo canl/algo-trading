@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 
 
 class OrderStatus:
@@ -15,7 +16,8 @@ class OrderSide:
 
 
 class Order(object):
-    def __init__(self, order_date, side, instrument, entry, sl=None, tp=None, pnl=0, status=OrderStatus.PENDING, last_update=None, units=100000):
+    def __init__(self, order_date: datetime, side: str, instrument: str, entry: float, sl: float = None, tp: float = None, pnl: float = 0,
+                 status=OrderStatus.PENDING, last_update=None, units: int = 100000, note: str = ""):
         """
         Order for execution
         :param order_date: Datetime
@@ -40,6 +42,7 @@ class Order(object):
         self.status = status
         self.last_update = last_update or self.order_date
         self.units = units
+        self.note = note
 
     @property
     def outcome(self):

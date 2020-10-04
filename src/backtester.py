@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import groupby
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -70,6 +71,10 @@ class BackTester:
 
     @staticmethod
     def print_stats(orders) -> dict:
+        wl_grps = list({k: list(g)} for k, g in groupby(orders, key=lambda x: x.outcome == 'win'))
+        win_streak = max([len(list(el.values())[0]) for el in wl_grps if list(el.keys())[0]])
+        loss_streak = max([len(list(el.values())[0]) for el in wl_grps if not list(el.keys())[0]])
+
         pip_size = 10000
         no_of_wins = len([o for o in orders if o.outcome == 'win'])
         no_of_losses = len([o for o in orders if o.outcome == 'loss'])
@@ -88,6 +93,8 @@ class BackTester:
             'cancelled': len([el for el in orders if el.status == OrderStatus.CANCELLED]),
             'wins': no_of_wins,
             'losses': no_of_losses,
+            'win_streak': win_streak,
+            'loss_streak': loss_streak,
             'average win': f'{round(avg_win * pip_size, 2)} pips',
             'average loss': f'{round(avg_loss * pip_size, 2)} pips',
             'win rate': 0 if no_of_wins == 0 else f'{round((no_of_wins / (no_of_wins + no_of_losses) * 100), 2)}%',
