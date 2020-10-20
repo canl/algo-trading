@@ -58,6 +58,7 @@ class MaTrader:
         self.sl_pips = sl_pips
         self.wait_seconds = wait_seconds
         self.live_run = live_run
+        self.adjustment = 0.0005  # 5 pips adjustment
 
     def run(self):
         # Wait for a few seconds, as in Python anywhere we can only schedule the job by minute
@@ -85,12 +86,16 @@ class MaTrader:
                     last_close = df['close'].iloc[-1]
                     units = self.get_pos_size(instrument=instrument)
                     one_lot = 100000
-                    if last_pos == 1:
-                        logger.info(f"Placing long market order for {instrument}")
-                        self.om.place_market_order(instrument=instrument, side=OrderSide.LONG, units=units * one_lot, sl=last_close - 3 * last_atr, tp=last_close + 5 * last_atr)
-                    else:
-                        logger.info(f"Placing short market order for {instrument}")
-                        self.om.place_market_order(instrument=instrument, side=OrderSide.SHORT, units=units * one_lot, sl=last_close + 3 * last_atr, tp=last_close - 5 * last_atr)
+
+                    logger.info(f"Placing {'long' if last_pos == 1 else 'short'} market order for {instrument}")
+                    self.om.place_limit_order(
+                        instrument=instrument,
+                        side=OrderSide.LONG,
+                        units=units * one_lot,
+                        price=last_close - self.adjustment * last_pos,
+                        sl=last_close - (3 * last_atr) * last_pos,
+                        tp=last_close + (5 * last_atr) * last_pos
+                    )
                 else:
                     logger.info("Dry run only, no order will be placed")
 
