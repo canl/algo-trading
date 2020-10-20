@@ -87,7 +87,7 @@ class MaTrader:
                     units = self.get_pos_size(instrument=instrument)
                     one_lot = 100000
 
-                    logger.info(f"Placing {'long' if last_pos == 1 else 'short'} market order for {instrument}")
+                    logger.info(f"Placing {'long' if last_pos == 1 else 'short'} limit order for {instrument} @ {last_close - self.adjustment * last_pos}")
                     self.om.place_limit_order(
                         instrument=instrument,
                         side=OrderSide.LONG if last_pos == 1 else OrderSide.SHORT,
