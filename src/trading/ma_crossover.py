@@ -90,7 +90,7 @@ class MaTrader:
                     logger.info(f"Placing {'long' if last_pos == 1 else 'short'} market order for {instrument}")
                     self.om.place_limit_order(
                         instrument=instrument,
-                        side=OrderSide.LONG,
+                        side=OrderSide.LONG if last_pos == 1 else OrderSide.SHORT,
                         units=units * one_lot,
                         price=last_close - self.adjustment * last_pos,
                         sl=last_close - (3 * last_atr) * last_pos,
