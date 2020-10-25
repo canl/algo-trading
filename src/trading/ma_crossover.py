@@ -80,7 +80,14 @@ class MaTrader:
                     matched_orders = self.om.get_open_trades()
                     matched_instrument = [o for o in matched_orders if o.get('instrument') == instrument]
                     for trade in matched_instrument:
+                        logger.info(f"Closing order {trade['id']} due to crossover")
                         self.om.close_trade(trade['id'])
+
+                    pending_orders = self.om.get_pending_orders()
+                    matched_instrument = [o for o in pending_orders if o.get('instrument') == instrument]
+                    for trade in matched_instrument:
+                        logger.info(f"Cancelling order {trade['id']} due to crossover")
+                        self.om.cancel_order(trade['id'])
 
                     last_atr = df['atr'].iloc[-1]
                     last_close = df['close'].iloc[-1]
