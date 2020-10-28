@@ -58,7 +58,7 @@ class MaTrader:
         self.sl_pips = sl_pips
         self.wait_seconds = wait_seconds
         self.live_run = live_run
-        self.adjustment = 0.0005  # 5 pips adjustment
+        self.adjustment = 0  # 0 pips, no adjustment
 
     def run(self):
         # Wait for a few seconds, as in Python anywhere we can only schedule the job by minute
